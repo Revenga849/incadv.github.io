@@ -27,13 +27,23 @@ var formatValue = function (value) {
 }
 
 function getNextLayerPoints(currentPoints, layer) {
-	prestigePointsFromCurrentLayer = new Decimal(0);
-	var prestigePointsFromPreviousLayer = new Decimal(currentPoints);
-	let layerPoints = prestigePointsFromPreviousLayer.dividedBy(new Decimal(layer).pow(2)).floor();
-	if (layerPoints.cmp(100) >=  1) {
-		layerPoints = layerPoints.dividedBy(100).times(prestigePointsFromCurrentLayer.plus(1).sqrt().sqrt().sqrt()).pow(new Decimal(0.8).pow(new Decimal(layer).sqrt())).times(100).floor();
-		if (layerPoints.cmp(10000) >  1) layerPoints = layerPoints.minus(10000).times(new Decimal(0.9).pow(layerPoints['log10']().minus(4))).plus(10000).floor();
-		if (layerPoints.dividedBy(100).cmp(prestigePointsFromCurrentLayer) >  0) layerPoints = layerPoints.dividedBy(100).minus(prestigePointsFromCurrentLayer).dividedBy(layerPoints.dividedBy(100).minus(prestigePointsFromCurrentLayer).sqrt()).plus(prestigePointsFromCurrentLayer).times(100).floor();
+	var layerPoints = new Decimal(0);
+	if (layer == 0) {
+		layerPoints = currentPoints.cmp(100) <=  0 ? currentPoints : currentPoints.dividedBy(typeof gdbg !==  'undefined' ? new Decimal(10) : new Decimal(100)).pow(1.45).times(100).floor();
+		prestigePointsFromCurrentLayer = new Decimal(0);
+		if (layerPoints.cmp(100) >  0) {
+			layerPoints = layerPoints.dividedBy(100).times(prestigePointsFromCurrentLayer.plus(1).sqrt().sqrt().sqrt()).pow(0.8).times(100).floor();
+			if (layerPoints.cmp(10000) >  0) layerPoints = layerPoints.minus(10000).times(new Decimal(0.9).pow(layerPoints.log10().minus(4))).plus(10000).floor();
+		}
+	} else {
+		prestigePointsFromCurrentLayer = new Decimal(0);
+		var prestigePointsFromPreviousLayer = new Decimal(currentPoints);
+		layerPoints = prestigePointsFromPreviousLayer.dividedBy(new Decimal(layer).pow(2)).floor();
+		if (layerPoints.cmp(100) >=  1) {
+			layerPoints = layerPoints.dividedBy(100).times(prestigePointsFromCurrentLayer.plus(1).sqrt().sqrt().sqrt()).pow(new Decimal(0.8).pow(new Decimal(layer).sqrt())).times(100).floor();
+			if (layerPoints.cmp(10000) >  1) layerPoints = layerPoints.minus(10000).times(new Decimal(0.9).pow(layerPoints['log10']().minus(4))).plus(10000).floor();
+			if (layerPoints.dividedBy(100).cmp(prestigePointsFromCurrentLayer) >  0) layerPoints = layerPoints.dividedBy(100).minus(prestigePointsFromCurrentLayer).dividedBy(layerPoints.dividedBy(100).minus(prestigePointsFromCurrentLayer).sqrt()).plus(prestigePointsFromCurrentLayer).times(100).floor();
+		}
 	}
 
 	return layerPoints.dividedBy(100).floor();
@@ -95,6 +105,9 @@ function calculate() {
 	var targetLayer = Number.parseInt($('#targetLayer').val())-1;
 	var precision = Number.parseInt($('#precision').val());
 	var targetPoints = Number.parseInt($('#targetPoints').val());
+	if (isNaN(currentLayer)) {
+		currentLayer = -1;
+	}
 	if (currentLayer < targetLayer) {
 		document.getElementById('tabcontent').style.display = "block";
 		estimatePointsForLayer(currentLayer, targetLayer, targetPoints, precision);
