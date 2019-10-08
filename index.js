@@ -1,5 +1,6 @@
 $(function () {
-  $('[data-toggle="popover"]').popover()
+  $('[data-toggle="popover"]').popover();
+  $('[data-toggle="dropdown"]').dropdown();
 })
 
 var formatValue = function (value) {
@@ -88,11 +89,10 @@ function estimatePointsForLayer(curLayer, targetLayer, target, precision) {
 }
 
 var points = [];
-
 function calculate() {
 	points = [];
-	var currentLayer = Number.parseInt($('#currentLayer').val()-1);
-	var targetLayer = Number.parseInt($('#targetLayer').val()-1);
+	var currentLayer = Number.parseInt($('#currentLayer').val())-1;
+	var targetLayer = Number.parseInt($('#targetLayer').val())-1;
 	var precision = Number.parseInt($('#precision').val());
 	var targetPoints = Number.parseInt($('#targetPoints').val());
 	if (currentLayer < targetLayer) {
