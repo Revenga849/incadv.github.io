@@ -14,6 +14,7 @@
 	<div class="container">
 		<h2 id="title" class="page-header">Incremental Adventure Layer Prestige Points calculation</small></h2>
 		<div class="panel panel-primary">
+			<div class="panel-heading">Calculates amount of points needed to unlock new layers. Put your max available layer in "Current Layer", layer you want to unlock in "Target Layer", amount of points you need in "Target Points".</div>
 			<div class="panel-body input-group">
 				<label id="currentLayerLabel" class="input-group-addon" for="currentLayer">
 					Current Layer
@@ -21,8 +22,8 @@
 				<input id="currentLayer" class="form-control input1" type="text" name="currentLayer" value="">
 			</div>
 			<div class="panel-body input-group">
-				<label id="targetLayerLabel" class="input-group-addon" for="targetLayer">
-					Target Layer
+				<label id="targetLayerLabel" class="input-group-addon" for="targetLayer"><a title="Target Layer" data-toggle="popover" data-trigger="hover" data-placement="bottom" data-content="Works only for new layers, if you already prestiged on that layer before, calculations won't work">Target Layer (?)</a></label>
+
 				</label>
 				<input id="targetLayer" class="form-control input1" type="text" name="targetLayer" value="">
 			</div>
@@ -36,7 +37,7 @@
 				<label id="precisionLabel" class="input-group-addon" for="precision">
 					Precision
 				</label>
-				<input id="precision" class="form-control input1" type="text" name="precision" value="">
+				<input id="precision" class="form-control input1" type="text" name="precision" value="5">
 			</div>
 			<div class="panel-body input-group">
 				<div class="input-group-btn">

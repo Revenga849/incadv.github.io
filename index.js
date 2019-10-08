@@ -1,3 +1,7 @@
+$(function () {
+  $('[data-toggle="popover"]').popover()
+})
+
 var formatValue = function (value) {
 	if (!(value instanceof Decimal)) {
 		var value = new Decimal(value);
