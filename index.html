@@ -1,0 +1,52 @@
+<!doctype html>
+<html>
+<head>
+	<title>Incremental Adventure Layer Prestige Points calculation</title>
+	<link rel="stylesheet" href="lib/bootstrap.min.css">
+	<link rel="stylesheet" href="index.css">
+	
+	<script src="lib/jquery-3.4.1.min.js"></script>
+	<script src="lib/bootstrap.min.js"></script>
+	<script src="lib/breakEternity.min.js"></script>
+	<script src="index.js"></script>
+</head>
+<body>
+	<div class="container">
+		<h2 id="title" class="page-header">Incremental Adventure Layer Prestige Points calculation</small></h2>
+		<div class="panel panel-primary">
+			<div class="panel-body input-group">
+				<label id="currentLayerLabel" class="input-group-addon" for="currentLayer">
+					Current Layer
+				</label>
+				<input id="currentLayer" class="form-control input1" type="text" name="currentLayer" value="4">
+			</div>
+			<div class="panel-body input-group">
+				<label id="targetLayerLabel" class="input-group-addon" for="targetLayer">
+					Target Layer
+				</label>
+				<input id="targetLayer" class="form-control input1" type="text" name="targetLayer" value="22">
+			</div>
+			<div class="panel-body input-group">
+				<label id="targetPointsLabel" class="input-group-addon" for="targetPoints">
+					Target Points
+				</label>
+				<input id="targetPoints" class="form-control input1" type="text" name="targetPoints" value="275">
+			</div>
+			<div class="panel-body input-group">
+				<label id="precisionLabel" class="input-group-addon" for="precision">
+					Precision
+				</label>
+				<input id="precision" class="form-control input1" type="text" name="precision" value="5">
+			</div>
+			<div class="panel-body input-group">
+				<div class="input-group-btn">
+					<button id="calculate" class="btn btn-success" type="button" onclick="calculate();">Calculate</button>
+				</div>
+			</div>
+		</div>
+		<div id="tabcontent" class="tabcontent">
+			<div id="calculation"></div>
+		</div>
+	</div>
+</body>
+</html>
