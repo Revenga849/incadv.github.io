@@ -84,15 +84,15 @@ function estimatePointsForLayer(curLayer, targetLayer, target, precision) {
 		point = e.mul(mult);
 	}
 	estimatePointsForLayer(curLayer, targetLayer-1, point, precision);
-	points[targetLayer-1] = point;
+	points[targetLayer] = point;
 }
 
 var points = [];
 
 function calculate() {
 	points = [];
-	var currentLayer = Number.parseInt($('#currentLayer').val());
-	var targetLayer = Number.parseInt($('#targetLayer').val());
+	var currentLayer = Number.parseInt($('#currentLayer').val()-1);
+	var targetLayer = Number.parseInt($('#targetLayer').val()-1);
 	var precision = Number.parseInt($('#precision').val());
 	var targetPoints = Number.parseInt($('#targetPoints').val());
 	if (currentLayer < targetLayer) {
