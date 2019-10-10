@@ -59,3 +59,10 @@ $(document).ready(function() {
     copyToClipboard(text, el);
   });
 });
+
+function populate(tag)
+{
+	if (typeof(sourcecode) != 'undefined') {
+		$('#'+tag).text(sourcecode);
+	}
+}
