@@ -31,13 +31,17 @@
 	<div class="container">
 		<h2 id="title" class="page-header">Incremental Adventure Layer Prestige Points calculation</small></h2>
 		<div class="panel panel-primary">
-			<div class="panel-heading">Calculates amount of points needed to unlock new layers. Put your max available layer in "Current Layer", layer you want to unlock in "Target Layer", amount of points you need in "Target Points".</div>
+			<div class="panel-heading">Calculates amount of prestige points needed to get to higher layers.<br>
+			<span style="color:#FF5555;"><b>Only works for layers in which you have zero points and zero stats upgrades (gameplay unlocks are fine)</b></span><br>
+			Put layer you want to start calculating with in "Current Layer",<br>
+			Layer you want to unlock in "Target Layer",<br>
+			Amount of points you want in target layer in "Target Points".</div>
 			<div class="panel-body input-group">
 				<label id="currentLayerLabel" class="input-group-addon" for="currentLayer">Current Layer</label>
 				<input id="currentLayer" class="form-control input1" type="text" name="currentLayer" value="">
 			</div>
 			<div class="panel-body input-group">
-				<label id="targetLayerLabel" class="input-group-addon" for="targetLayer"><a title="Target Layer" data-toggle="popover" data-trigger="hover" data-placement="bottom" data-content="Works only for new layers, if you already prestiged on that layer before, calculations won't work">Target Layer (?)</a></label>
+				<label id="targetLayerLabel" class="input-group-addon" for="targetLayer"><a title="Target Layer" data-toggle="popover" data-trigger="hover" data-placement="bottom" data-content="Works only for layers with 0 points, if you have unspent points or stat upgrades in that and preceeding layers, calculations won't work">Target Layer (?)</a></label>
 
 				</label>
 				<input id="targetLayer" class="form-control input1" type="text" name="targetLayer" value="">
@@ -45,10 +49,6 @@
 			<div class="panel-body input-group">
 				<label id="targetPointsLabel" class="input-group-addon" for="targetPoints">Target Points</label>
 				<input id="targetPoints" class="form-control input1" type="text" name="targetPoints" value="">
-			</div>
-			<div class="panel-body input-group">
-				<label id="precisionLabel" class="input-group-addon" for="precision">Precision</label>
-				<input id="precision" class="form-control input1" type="text" name="precision" value="5">
 			</div>
 			<div class="panel-body input-group">
 				<div class="input-group-btn">

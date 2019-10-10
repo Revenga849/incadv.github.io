@@ -7,7 +7,7 @@ var formatValue = function (value) {
 	if (!(value instanceof Decimal)) {
 		var value = new Decimal(value);
 	}
-	if (value < 1000) {
+	if (value < 10000) {
 		if (Number.isInteger(value.mag))
 			return (value).toFixed(0);
 		else 
@@ -26,97 +26,66 @@ var formatValue = function (value) {
 	return mantissa + "e" + power;
 }
 
-function getNextLayerPoints(currentPoints, layer) {
-	var layerPoints = new Decimal(0);
-	if (layer == 0) {
-		layerPoints = currentPoints.cmp(100) <=  0 ? currentPoints : currentPoints.dividedBy(typeof gdbg !==  'undefined' ? new Decimal(10) : new Decimal(100)).pow(1.45).times(100).floor();
-		prestigePointsFromCurrentLayer = new Decimal(0);
-		if (layerPoints.cmp(100) >  0) {
-			layerPoints = layerPoints.dividedBy(100).times(prestigePointsFromCurrentLayer.plus(1).sqrt().sqrt().sqrt()).pow(0.8).times(100).floor();
-			if (layerPoints.cmp(10000) >  0) layerPoints = layerPoints.minus(10000).times(new Decimal(0.9).pow(layerPoints.log10().minus(4))).plus(10000).floor();
-		}
-	} else {
-		prestigePointsFromCurrentLayer = new Decimal(0);
-		var prestigePointsFromPreviousLayer = new Decimal(currentPoints);
-		layerPoints = prestigePointsFromPreviousLayer.dividedBy(new Decimal(layer).pow(2)).floor();
-		if (layerPoints.cmp(100) >=  1) {
-			layerPoints = layerPoints.dividedBy(100).times(prestigePointsFromCurrentLayer.plus(1).sqrt().sqrt().sqrt()).pow(new Decimal(0.8).pow(new Decimal(layer).sqrt())).times(100).floor();
-			if (layerPoints.cmp(10000) >  1) layerPoints = layerPoints.minus(10000).times(new Decimal(0.9).pow(layerPoints['log10']().minus(4))).plus(10000).floor();
-			if (layerPoints.dividedBy(100).cmp(prestigePointsFromCurrentLayer) >  0) layerPoints = layerPoints.dividedBy(100).minus(prestigePointsFromCurrentLayer).dividedBy(layerPoints.dividedBy(100).minus(prestigePointsFromCurrentLayer).sqrt()).plus(prestigePointsFromCurrentLayer).times(100).floor();
-		}
+/*
+Assume p = current points in layer k
+y = sqrt((x/(k^2)/100)^(0.8^sqrt(k)))
+resulting y = points you get in layer k+1
+
+Reverse:
+points needed to unlock layer (k+1) = 100*k^2*x^(2*1.25^sqrt(k))
+where x = points you want at layer (k+1)
+*/
+
+function estimatePointsForLayer(curLayer, targetLayer, target) {
+	if (targetLayer < 1) {
+		return;
 	}
-
-	return layerPoints.dividedBy(100).floor();
-}
-
-function estimatePointsForLayer(curLayer, targetLayer, target, precision) {
-	var point = new Decimal(0);
-	var targetPoints = new Decimal(target);
-    if (curLayer == targetLayer) {
-        return targetPoints;
-    }
-	var prestigePoints = new Decimal(0);
-	var e = new Decimal(10);
-	var exp = targetPoints.cmp('1e1000') > 0;
+	points[targetLayer] = target;
+	var layer = new Decimal(targetLayer-1);
+	var pointsNeeded = new Decimal(100).mul(layer.sqr()).mul(target.pow(new Decimal(2).mul(new Decimal(1.25).pow(layer.sqrt()))));
 	
-	while (prestigePoints.cmp(targetPoints) < 0) {
-		if (exp) {
-			e = e.pow(1.1);
-		} else {
-			e = e.mul(10);
-		}
-		prestigePoints = getNextLayerPoints(e, targetLayer);
-	}
-
-	var prec = 0;
-	var mult = new Decimal(1);
-	while (prec < precision) {
-		mult = mult.minus(new Decimal(1).divideBy(Decimal.pow(10, prec)));
-		prec++;
-		prestigePoints = new Decimal(0);
-		for (let i=1; i<=10; i++) {
-			var newmult = new Decimal(1).divideBy(Decimal.pow(10, prec)).mul(i).plus(mult);
-			if (exp) {
-				prestigePoints = getNextLayerPoints(e.pow(newmult), targetLayer);
-			} else {
-				prestigePoints = getNextLayerPoints(e.mul(newmult), targetLayer);
-			}
-			
-			if (prestigePoints.cmp(targetPoints) >= 0) {
-				mult = newmult;
-				break;
-			}
-		}
-		
-	}
-	if (exp) {
-		point = e.pow(mult);
+	if (curLayer == targetLayer) {
+		return pointsNeeded;
 	} else {
-		point = e.mul(mult);
+		return estimatePointsForLayer(curLayer, targetLayer-1, pointsNeeded);
 	}
-	estimatePointsForLayer(curLayer, targetLayer-1, point, precision);
-	points[targetLayer] = point;
 }
 
 var points = [];
 function calculate() {
 	points = [];
-	var currentLayer = Number.parseInt($('#currentLayer').val())-1;
-	var targetLayer = Number.parseInt($('#targetLayer').val())-1;
-	var precision = Number.parseInt($('#precision').val());
-	var targetPoints = Number.parseInt($('#targetPoints').val());
+	var currentLayer = Number.parseInt($('#currentLayer').val());
+	var targetLayer = Number.parseInt($('#targetLayer').val());
+	var targetPoints = new Decimal($('#targetPoints').val());
 	if (isNaN(currentLayer)) {
-		currentLayer = -1;
+		currentLayer = 1;
 	}
 	if (currentLayer < targetLayer) {
 		document.getElementById('tabcontent').style.display = "block";
-		estimatePointsForLayer(currentLayer, targetLayer, targetPoints, precision);
+		estimatePointsForLayer(currentLayer, targetLayer, targetPoints);
 		$('#calculation').html('<b>Calculation</b> <br><ol></ol>');
+
+		var first  = true;
+		var i = 0;
 		points.forEach((a,b)=>{
-			var layerstr = "Layer " + b + ": " + formatValue(a);
+			var color = 200*(i)/points.length;
+			i++;
+			color = Number.parseInt(color.toFixed(0)).toString(16);
+			if (color.length == 1) {
+				color = '0' + color;
+			}
+			var colorcode = '#ff' + color + color;
+			console.log(i + " of " + points.length + " " + colorcode);
+			if (first) {
+				first = false;
+				var layerstr = "In <span style='font-weight:bold;color:" + colorcode + ";'>Layer " + b + "</span> you need: " + formatValue(a);
+			} else {
+				var layerstr = "In <span style='font-weight:bold;color:" + colorcode + ";'>Layer " + b + "</span> you'll get: <span>" + formatValue(a) + "</span>";
+			}
 			var li = $('<li />').html(layerstr).addClass('layer' + b);
 			$('#calculation > ol').append(li);
 		});
+		$('#calculation > ol')[0].lastChild.lastChild.style.fontWeight = 'bold';
 	} else {
 		document.getElementById('tabcontent').style.display = "none";
 	}
