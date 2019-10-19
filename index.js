@@ -4,6 +4,9 @@ $(function () {
 })
 
 var formatValue = function (value) {
+	if (value.layer instanceof Decimal || value.layer > 2) {
+		return value.toString();
+	}
 	if (!(value instanceof Decimal)) {
 		var value = new Decimal(value);
 	}
@@ -32,8 +35,8 @@ y = sqrt((x/(k^2)/100)^(0.8^sqrt(k)))
 resulting y = points you get in layer k+1
 
 Reverse:
-points needed to unlock layer (k+1) = 100*k^2*x^(2*1.25^sqrt(k))
-where x = points you want at layer (k+1)
+points needed to unlock layer (k+1) = 100 * k^2 * x^(2 * 1.25^sqrt(k))
+where x = points you want in layer (k+1)
 */
 
 function estimatePointsForLayer(curLayer, targetLayer, target) {
