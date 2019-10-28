@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
 <head>
-	<title>Incremental Adventure Layer Prestige Points calculation</title>
+	<title>Incremental Adventure Layer Points calculation</title>
 	<link rel="stylesheet" href="lib/bootstrap.min.css">
 	<link rel="stylesheet" href="index.css">
 	
@@ -18,36 +18,79 @@
 					<li><a href="https://www.kongregate.com/games/Gniller/incremental-adventures">Incremental Adventures</a></li>
 					<li><a href="https://chrome.google.com/webstore/detail/incremental-adventures-qo/hibaleheefjghhphocdkdofgpcaihjdh">QoL Chrome Extension</a></li>
 					<li><a href="https://equeline.github.io/QoL">QoL for other browsers</a></li>
-					<li><a href="https://equeline.github.io/">Layer Prestige Points Calculation</a></li>
+					<li><a href="https://equeline.github.io/">Prestige/Ascension calculator</a></li>
 				</ul>
 			</div>
 		</div>
 	</nav>
 	<div class="container">
-		<h2 id="title" class="page-header">Incremental Adventure Layer Prestige Points calculation</small></h2>
-		<div class="panel panel-primary">
-			<div class="panel-heading">Calculates amount of prestige points needed to get to higher layers.<br>
-			<span style="color:#FF5555;"><b>Only works for layers in which you have zero points and zero stats upgrades (gameplay unlocks are fine)</b></span><br>
-			Put layer you want to start calculating with in "Current Layer",<br>
-			Layer you want to unlock in "Target Layer",<br>
-			Amount of points you want in target layer in "Target Points".</div>
-			<div class="panel-body input-group">
-				<label id="currentLayerLabel" class="input-group-addon" for="currentLayer">Current Layer</label>
-				<input id="currentLayer" class="form-control input1" type="text" name="currentLayer" value="">
-			</div>
-			<div class="panel-body input-group">
-				<label id="targetLayerLabel" class="input-group-addon" for="targetLayer"><a title="Target Layer" data-toggle="popover" data-trigger="hover" data-placement="bottom" data-content="Works only for layers with 0 points, if you have unspent points or stat upgrades in that and preceeding layers, calculations won't work">Target Layer (?)</a></label>
+		<h2 id="title" class="page-header">Incremental Adventure Prestige/Ascension calculator</small></h2>
+		<div class="tab">
+			<button class="tablinks active" onclick="openTab(event, 'Prestige');">Prestige layers</button>
+			<button class="tablinks" onclick="openTab(event, 'Ascension');">Ascension points</button>
+		</div>
+		<div id="Prestige" class="tabcontent" style="display:block;">
+			<div class="panel panel-primary">		
+				<div class="panel-heading">
+					<span style="color:#FF5555;"><b>Only works for layers in which you have zero points and zero stats upgrades (gameplay unlocks are fine)</b></span><br>
+					Put layer you want to start calculating with in "Current Layer",<br>
+					Layer you want to unlock in "Target Layer",<br>
+					Amount of points you want in target layer in "Target Points".
+				</div>
+				<div class="panel-body input-group">
+					<label id="currentLayerLabel" class="input-group-addon" for="currentLayer">Current layer</label>
+					<input id="currentLayer" class="form-control input1" type="text" name="currentLayer" value="">
+				</div>
+				<div class="panel-body input-group">
+					<label id="targetLayerLabel" class="input-group-addon" for="targetLayer"><a title="Target Layer" data-toggle="popover" data-trigger="hover" data-placement="bottom" data-content="Works only for layers with 0 points, if you have unspent points or stat upgrades in that and preceeding layers, calculations won't work">Target layer (?)</a></label>
 
-				</label>
-				<input id="targetLayer" class="form-control input1" type="text" name="targetLayer" value="">
+					</label>
+					<input id="targetLayer" class="form-control input1" type="text" name="targetLayer" value="">
+				</div>
+				<div class="panel-body input-group">
+					<label id="targetPointsLabel" class="input-group-addon" for="targetPoints">Target points</label>
+					<input id="targetPoints" class="form-control input1" type="text" name="targetPoints" value="">
+				</div>
+				<div class="panel-body input-group">
+					<div class="input-group-btn">
+						<button id="calculate" class="btn btn-success" type="button" onclick="calculate();">Calculate</button>
+					</div>
+				</div>
 			</div>
-			<div class="panel-body input-group">
-				<label id="targetPointsLabel" class="input-group-addon" for="targetPoints">Target Points</label>
-				<input id="targetPoints" class="form-control input1" type="text" name="targetPoints" value="">
-			</div>
-			<div class="panel-body input-group">
-				<div class="input-group-btn">
-					<button id="calculate" class="btn btn-success" type="button" onclick="calculate();">Calculate</button>
+		</div>
+		<div id="Ascension" class="tabcontent">
+			<div class="panel panel-primary">		
+				<div class="panel-heading">
+					Fill your current ascension unspent and exp upgrades below (0 if you have none).<br>
+					We don't know how much level you can gain at each layer, so those combinations were loosely interpolated on available data.<br>
+					Combinations of layer/level you can reach may differ.<br>
+					But considering those selected, ascension point calculation is accurate.
+				</div>
+				<div class="panel-body input-group">
+					<label id="currentAscLayerLabel" class="input-group-addon" for="currentAscLayer">Current Ascension layer</label>
+					<input id="currentAscLayer" disabled="disabled" class="form-control input1" type="text" name="currentAscLayer" value="1">
+				</div>
+				<div class="panel-body input-group">
+					<label id="currentAscPointsLabel" class="input-group-addon" for="currentAscPoints">Current unspent points</label>
+					<input id="currentAscPoints" class="form-control input1" type="text" name="currentAscPoints" value="0">
+				</div>
+				<div class="panel-body input-group">
+					<label id="currentAscExpUpgradesLabel" class="input-group-addon" for="currentAscExpUpgrades">Current exp upgrades</label>
+					<input id="currentAscExpUpgrades" class="form-control input1" type="text" name="currentAscExpUpgrades" value="0">
+				</div>
+				<div class="panel-body input-group">
+					<label id="targetAscLayerLabel" class="input-group-addon" for="targetAscLayer">Target Ascension layer</label>
+					</label>
+					<input id="targetAscLayer" disabled="disabled" class="form-control input1" type="text" name="targetAscLayer" value="1">
+				</div>
+				<!--div class="panel-body input-group">
+					<label id="targetAscPointsLabel" class="input-group-addon" for="targetAscPoints">Target Ascension Points</label>
+					<input id="targetAscPoints" class="form-control input1" type="text" name="targetAscPoints" value="">
+				</div-->
+				<div class="panel-body input-group">
+					<div class="input-group-btn">
+						<button id="calculate" class="btn btn-success" type="button" onclick="calculateAscension();">Calculate</button>
+					</div>
 				</div>
 			</div>
 		</div>
