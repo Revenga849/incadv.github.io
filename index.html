@@ -43,14 +43,43 @@
 				</div>
 				<div class="panel-body input-group">
 					<label id="targetLayerLabel" class="input-group-addon" for="targetLayer"><a title="Target Layer" data-toggle="popover" data-trigger="hover" data-placement="bottom" data-content="Works only for layers with 0 points, if you have unspent points or stat upgrades in that and preceeding layers, calculations won't work">Target layer (?)</a></label>
-
-					</label>
 					<input id="targetLayer" class="form-control input1" type="text" name="targetLayer" value="">
 				</div>
 				<div class="panel-body input-group">
 					<label id="targetPointsLabel" class="input-group-addon" for="targetPoints">Target points</label>
 					<input id="targetPoints" class="form-control input1" type="text" name="targetPoints" value="">
 				</div>
+				
+				<form class="form-inline">
+					<div class="panel-body input-group upgrade-30">
+						<label id ="rpprLabel" for="rppr" class="input-group-addon">Reduce prestige points requirements</label>
+						<span class="input-group-btn">
+							<button class="btn btn-group btn-inline" style="border-radius:0" type="button" onclick="rpprDec();">
+								<strong>-</strong>
+							</button>
+						</span>
+						<input id="rppr" type="text" style="text-align: center" class="form-control input-digits" value="0" disabled="true">
+						<span class="input-group-btn">
+							<button class="btn btn-group" type="button" onclick="rpprInc();">
+								<strong>+</strong>
+							</button>
+						</span>
+					</div>
+					<div class="panel-body input-group upgrade-30">
+						<label id ="rpdrLabel" for="rpdr" class="input-group-addon">Reduce prestige diminishing return</label>
+						<span class="input-group-btn">
+							<button class="btn btn-group btn-inline" style="border-radius:0" type="button" onclick="rpdrDec();">
+								<strong>-</strong>
+							</button>
+						</span>
+						<input id="rpdr" type="text" style="text-align: center" class="form-control input-digits" value="0" disabled="true">
+						<span class="input-group-btn">
+							<button class="btn btn-group" type="button" onclick="rpdrInc();">
+								<strong>+</strong>
+							</button>
+						</span>
+					</div>
+				</form>
 				<div class="panel-body input-group">
 					<div class="input-group-btn">
 						<button id="calculate" class="btn btn-success" type="button" onclick="calculate();">Calculate</button>
