@@ -79,7 +79,7 @@ function estimatePointsForLayer(curLayer, targetLayer, target) {
 	var layermult = Decimal.max(new Decimal(1), layer).sqr().mul(new Decimal(100));
 	var layerpow = new Decimal(0.8);
 	if ($('#rpdr')[0].value != "0") {
-		layerpow = layerpow.pow(new Decimal(0.98).pow($('#rpdr')[0].value));
+		layerpow = layerpow.pow(new Decimal(0.975).pow($('#rpdr')[0].value));
 	}
 	//var pointsNeeded = layermult.mul(target.pow(new Decimal(2).mul(layerpow.recip().pow(layer.sqrt()))));
 	var pointsNeeded = target.pow(layerpow.pow(layer.sqrt().neg()).mul(new Decimal(2))).mul(layermult);
@@ -146,17 +146,22 @@ function estimateAscPoints(curPoints) {
 		var ascPointsTarget = new Decimal(i);
 		var ascPoints = new Decimal(0);
 		
-		var layer = new Decimal(17);
-		var level = new Decimal('e1e9');
+		var layer = new Decimal(20);
+		var level = new Decimal('e2.27e11');
 		var ascLevel = ascPointsTarget.pow(1.25);
 		if (ascPointsTarget.gt(1)) {
 			ascLevel = ascLevel.div(curPoints.add(1).pow(0.125)).mul(100).ceil().div(100);
 		}
-		var ascLayerLevel = Decimal.layeradd(ascLevel.pow(1/1.6).mul(100).div(layer.minus(10)),2);
+		var ascLayerLevel = Decimal.layeradd(ascLevel.pow(1/1.8).mul(100).div(layer.minus(10)),2);
 		while (ascLayerLevel.gte(level)) {
 			layer = layer.add(1);
-			ascLayerLevel = Decimal.layeradd(ascLevel.pow(1/1.6).mul(100).div(layer.minus(10)),2);
-			level = level.pow(7);
+			level = level.pow(6.1);
+			ascLayerLevel = Decimal.layeradd(ascLevel.pow(1/1.8).mul(100).div(layer.minus(10)),2);
+			//console.log(i + ' AP at PL' + layer + ': HL=' + formatValue(ascLayerLevel));
+		}
+		if (level.pow(0.3).gte(ascLayerLevel) && layer.gt(20)) {
+			layer = layer.minus(1);
+			ascLayerLevel = Decimal.layeradd(ascLevel.pow(1/1.8).mul(100).div(layer.minus(10)),2);
 		}
 		ascText[i] = (i<10?'&nbsp;&nbsp;':'') + '<b>' + i + '</b>' + ' Ascension points at layer <b>' + (layer.toNumber()) + '</b>, highest level <b>' + formatValue(ascLayerLevel.pow(1.01)) + '</b>';
 	}
