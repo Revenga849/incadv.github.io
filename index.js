@@ -3,6 +3,19 @@ $(function () {
   $('[data-toggle="dropdown"]').dropdown();
 })
 
+function getUrlParam(param) {
+    var params = {};
+    var search = decodeURIComponent(window.location.href.slice(window.location.href.indexOf('?') + 1));
+    var definitions = search.split('&');
+
+    definitions.forEach(function(val, key) {
+        var parts = val.split('=',2);
+        params[parts[0]] = parts[1];
+    } );
+
+    return (param && param in params) ? params[param] : null;
+}
+
 function rpprInc() {
 	var rppr = $('#rppr')[0];
 	rppr.value = Number.parseInt(rppr.value) + 1;
@@ -58,13 +71,25 @@ var formatValue = function (value) {
 // RPPR - number of "Reduce prestige points requirements" ascension upgrades
 // RPDR - number of "Reduce prestige diminishing return" ascension upgrades
 // LM = 100 * MAX(layer - RPPR, 1)^2
-// LP = 0.8^( 0.98^(RPDR * sqrt(layer - RPPR)) )
+// LP = 0.8^( 0.975^(RPDR * sqrt(layer - RPPR)) )
 // pcl - points needed
 // points = sqrt((pcl / LM)^LP)
 
 // Reverse:
-// pcl = LM * points^(2 * (1 / LP)^sqrt(layer - RPPR))
 // pcl = LM * points^(2 * LP^(-sqrt(layer - RPPR)))
+
+function getNextLayerPoints(curLayer, curPoints) {
+	var layer = new Decimal(curLayer);
+	if ($('#rppr').val() != "0") {
+		layer = layer.minus($('#rppr').val());
+	}
+	var layermult = Decimal.max(new Decimal(1), layer).sqr().mul(new Decimal(100));
+	var layerpow = new Decimal(0.8);
+	if ($('#rpdr').val() != "0") {
+		layerpow = layerpow.pow(new Decimal(0.975).pow($('#rpdr').val()));
+	}
+	return curPoints.div(layermult).pow(layerpow.pow(layer.sqrt()).div(2));
+}
 
 function estimatePointsForLayer(curLayer, targetLayer, target) {
 	if (targetLayer < 1) {
@@ -72,14 +97,13 @@ function estimatePointsForLayer(curLayer, targetLayer, target) {
 	}
 	points[targetLayer] = target;
 	var layer = new Decimal(targetLayer-1);
-	var diminishingReturn = new Decimal(0.8);
-	if ($('#rppr')[0].value != "0") {
-		layer = layer.minus($('#rppr')[0].value);
+	if ($('#rppr').val() != "0") {
+		layer = layer.minus($('#rppr').val());
 	}
 	var layermult = Decimal.max(new Decimal(1), layer).sqr().mul(new Decimal(100));
 	var layerpow = new Decimal(0.8);
-	if ($('#rpdr')[0].value != "0") {
-		layerpow = layerpow.pow(new Decimal(0.975).pow($('#rpdr')[0].value));
+	if ($('#rpdr').val() != "0") {
+		layerpow = layerpow.pow(new Decimal(0.975).pow($('#rpdr').val()));
 	}
 	//var pointsNeeded = layermult.mul(target.pow(new Decimal(2).mul(layerpow.recip().pow(layer.sqrt()))));
 	var pointsNeeded = target.pow(layerpow.pow(layer.sqrt().neg()).mul(new Decimal(2))).mul(layermult);
@@ -90,6 +114,36 @@ function estimatePointsForLayer(curLayer, targetLayer, target) {
 		return estimatePointsForLayer(curLayer, targetLayer-1, pointsNeeded);
 	}
 }
+
+$(function() {
+	$('#rppr').val(getUrlParam('rppr') || 0);
+	$('#rpdr').val(getUrlParam('rpdr') || 0);
+	var cl = Number.parseInt(getUrlParam('cl')) || 1;
+	var tl = cl;
+	$('#currentLayer').val(cl);
+	var clp = new Decimal(getUrlParam('clp'));
+	if (tl > 0) {
+		var tlp = clp;
+		while (tlp.gt(1)) {
+			clp = getNextLayerPoints(tl, tlp);
+			if (clp.gt(1)) {
+				tl++;
+				tlp = clp;
+			} else {
+				break;
+			}
+		}
+	}
+	if (tl > cl) {
+		$('#targetLayer').val(tl);
+		$('#targetPoints').val(formatValue(tlp));
+		calculate();
+	} else {
+		$('#targetLayer').val(cl+1);
+		$('#targetPoints').val(1);
+		calculate();
+	}
+});
 
 var points = [];
 function calculate() {
@@ -166,6 +220,15 @@ function estimateAscPoints(curPoints) {
 		ascText[i] = (i<10?'&nbsp;&nbsp;':'') + '<b>' + i + '</b>' + ' Ascension points at layer <b>' + (layer.toNumber()) + '</b>, highest level <b>' + formatValue(ascLayerLevel.pow(1.01)) + '</b>';
 	}
 }
+
+$(function() {
+	$('#currentAscPoints').val(getUrlParam('acp') || 0);
+	$('#currentAscExpUpgrades').val(getUrlParam('acu') || 0);
+	if (getUrlParam('acp') != null) {
+		openTab({currentTarget:$('#ascensionLayersButton')[0]}, 'Ascension');
+		calculateAscension();
+	}
+});
 
 var ascText = [];
 function calculateAscension() {
