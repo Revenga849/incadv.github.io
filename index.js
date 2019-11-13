@@ -98,9 +98,9 @@ function estimatePointsForLayer(curLayer, targetLayer, target) {
 	points[targetLayer] = target;
 	var layer = new Decimal(targetLayer-1);
 	if ($('#rppr').val() != "0") {
-		layer = layer.minus($('#rppr').val());
+		layer = Decimal.max(new Decimal(1), layer.minus($('#rppr').val()));
 	}
-	var layermult = Decimal.max(new Decimal(1), layer).sqr().mul(new Decimal(100));
+	var layermult = layer.sqr().mul(new Decimal(100));
 	var layerpow = new Decimal(0.8);
 	if ($('#rpdr').val() != "0") {
 		layerpow = layerpow.pow(new Decimal(0.975).pow($('#rpdr').val()));
