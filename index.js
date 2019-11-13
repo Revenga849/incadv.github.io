@@ -116,8 +116,16 @@ function estimatePointsForLayer(curLayer, targetLayer, target) {
 }
 
 $(function() {
-	$('#rppr').val(getUrlParam('rppr') || 0);
-	$('#rpdr').val(getUrlParam('rpdr') || 0);
+	var rppr = getUrlParam('rppr');
+	if (rppr == null || rppr == 'undefined') {
+		rppr = 0;
+	}
+	$('#rppr').val(rppr);
+	var rppr = getUrlParam('rppr');
+	if (rppr == null || rppr == 'undefined') {
+		rppr = 0;
+	}
+	$('#rppr').val(rppr);
 	var cl = Number.parseInt(getUrlParam('cl')) || 1;
 	var tl = cl;
 	$('#currentLayer').val(cl);
