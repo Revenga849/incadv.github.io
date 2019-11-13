@@ -187,12 +187,11 @@ function calculate() {
 
 
 /* ASCENSION */
-// points = (log(log(HL)) * (PL-10) / 100)^1.6 * 100
+// points = (log(log(HL)) * (PL-10) / 100)^1.8 * 100
 // pcl = unspent+stats^2.2
 // points = (points / 100 * (pcl+1)^0.125)^0.8 * 100
 
 // Reverse:
-// 
 // HL = points^1.25 / (pcl+1)^0.125
 
 function estimateAscPoints(curPoints) {
@@ -213,7 +212,7 @@ function estimateAscPoints(curPoints) {
 			ascLayerLevel = Decimal.layeradd(ascLevel.pow(1/1.8).mul(100).div(layer.minus(10)),2);
 			//console.log(i + ' AP at PL' + layer + ': HL=' + formatValue(ascLayerLevel));
 		}
-		if (level.pow(0.3).gte(ascLayerLevel) && layer.gt(20)) {
+		if (level.pow(0.7).gte(ascLayerLevel) && layer.gt(20)) {
 			layer = layer.minus(1);
 			ascLayerLevel = Decimal.layeradd(ascLevel.pow(1/1.8).mul(100).div(layer.minus(10)),2);
 		}
