@@ -137,7 +137,7 @@ $(function() {
 	if (rpdr == null || rpdr == 'undefined') {
 		rpdr = 0;
 	}
-	$('#rppd').val(rpdr);
+	$('#rpdr').val(rpdr);
 	var cl = Number.parseInt(getUrlParam('cl')) || 1;
 	var tl = cl;
 	$('#currentLayer').val(cl);
