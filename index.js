@@ -40,6 +40,18 @@ function rpdrDec() {
 	
 }
 
+function ispInc() {
+	var isp = $('#isp')[0];
+	isp.value = Number.parseInt(isp.value) + 1;
+}
+
+function ispDec() {
+	var isp = $('#isp')[0];
+	var ispValue = Math.max(Number.parseInt(isp.value)-1,0);
+	isp.value = ispValue;
+	
+}
+
 var formatValue = function (value) {
 	if (value.layer instanceof Decimal || value.layer > 2) {
 		return value.toString();
@@ -121,11 +133,11 @@ $(function() {
 		rppr = 0;
 	}
 	$('#rppr').val(rppr);
-	var rppr = getUrlParam('rppr');
-	if (rppr == null || rppr == 'undefined') {
-		rppr = 0;
+	var rpdr = getUrlParam('rpdr');
+	if (rpdr == null || rpdr == 'undefined') {
+		rpdr = 0;
 	}
-	$('#rppr').val(rppr);
+	$('#rppd').val(rpdr);
 	var cl = Number.parseInt(getUrlParam('cl')) || 1;
 	var tl = cl;
 	$('#currentLayer').val(cl);
@@ -220,7 +232,7 @@ function estimateAscPoints(curPoints) {
 			ascLayerLevel = Decimal.layeradd(ascLevel.pow(1/1.8).mul(100).div(layer.minus(10)),2);
 			//console.log(i + ' AP at PL' + layer + ': HL=' + formatValue(ascLayerLevel));
 		}
-		if (level.pow(0.7).gte(ascLayerLevel) && layer.gt(20)) {
+		if (level.pow(0.3).gte(ascLayerLevel) && layer.gt(20)) {
 			layer = layer.minus(1);
 			ascLayerLevel = Decimal.layeradd(ascLevel.pow(1/1.8).mul(100).div(layer.minus(10)),2);
 		}
