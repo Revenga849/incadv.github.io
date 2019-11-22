@@ -16,23 +16,24 @@
 			<div class="collapse navbar-collapse" id="nav-collapsable-content">
 				<ul class="nav navbar-nav">
 					<li><a href="https://www.kongregate.com/games/Gniller/incremental-adventures">Incremental Adventures</a></li>
-					<li><a href="https://equeline.github.io/">Prestige/Ascension calculator</a></li>
-					<li><a href="https://chrome.google.com/webstore/detail/incremental-adventures-qo/hibaleheefjghhphocdkdofgpcaihjdh">QoL Chrome Extension</a></li>
-					<li><a href="https://openuserjs.org/scripts/eQueline/IA_QoL">QoL Tampermonkey script</a></li>
+					<li><a href="https://equeline.github.io/">Prestige/Ascension points calculator</a></li>
+					<li><a href="https://openuserjs.org/scripts/eQueline/IA_QoL">IA QoL Tampermonkey script</a></li>
 					<li><a href="https://equeline.github.io/QoL">Script manual installation</a></li>
+					<li><a href="https://chrome.google.com/webstore/detail/incremental-adventures-qo/hibaleheefjghhphocdkdofgpcaihjdh">QoL Chrome Extension (outdated)</a></li>
 				</ul>
 			</div>
 		</div>
 	</nav>
 	<div class="container">
-		<h2 id="title" class="page-header">Incremental Adventure Prestige/Ascension calculator</small></h2>
+		<h2 id="title" class="page-header">Incremental Adventure Prestige/Ascension points calculator</small></h2>
 		<div class="tab">
-			<button id="prestigeLayersButton" class="tablinks active" onclick="openTab(event, 'Prestige');">Prestige layers</button>
+			<button id="prestigeLayersButton" class="tablinks active" onclick="openTab(event, 'Prestige');">Layers</button>
 			<button id="ascensionLayersButton" class="tablinks" onclick="openTab(event, 'Ascension');">Ascension points</button>
 		</div>
 		<div id="Prestige" class="tabcontent" style="display:block;">
 			<div class="panel panel-primary">		
 				<div class="panel-heading">
+					<b>This calculator shows how much points you need to reach certain layer, works for both prestige and ascension</b><br>
 					<span style="color:#FF5555;"><b>Only works for layers in which you have zero points and zero stats upgrades (gameplay unlocks are fine)</b></span><br>
 					Put layer you want to start calculating with in "Current Layer",<br>
 					Layer you want to unlock in "Target Layer",<br>
@@ -91,10 +92,11 @@
 		<div id="Ascension" class="tabcontent">
 			<div class="panel panel-primary">		
 				<div class="panel-heading">
-					Fill your current ascension unspent and exp upgrades below (0 if you have none).<br>
-					We don't know how much level you can gain at each layer, so those combinations were loosely interpolated on available data.<br>
-					Combinations of layer/level you can reach may differ.<br>
-					But considering those selected, ascension point calculation is accurate.
+					<b>Amount of ascension points gained depends on your highest layer, highest level and current amount of points including ones spent on the stats upgrade.</b><br>
+					Highest level you can reach per layer may vary, so those combinations were extrapolated on available data (PL20 to PL30 test runs).<br>
+					Combinations of layer/level you can reach may slightly differ.<br>
+					But considering those selected, ascension point gain calculation is accurate.<br><br>
+					<b>Fill your current ascension unspent points and exp upgrades below (0 if you have none):</b>
 				</div>
 				<div class="panel-body input-group">
 					<label id="currentAscLayerLabel" class="input-group-addon" for="currentAscLayer">Current Ascension layer</label>
@@ -110,13 +112,12 @@
 				</div>
 				<div class="panel-body input-group">
 					<label id="targetAscLayerLabel" class="input-group-addon" for="targetAscLayer">Target Ascension layer</label>
-					</label>
 					<input id="targetAscLayer" disabled="disabled" class="form-control input1" type="text" name="targetAscLayer" value="1">
 				</div>
-				<!--div class="panel-body input-group">
+				<div class="panel-body input-group">
 					<label id="targetAscPointsLabel" class="input-group-addon" for="targetAscPoints">Target Ascension Points</label>
-					<input id="targetAscPoints" class="form-control input1" type="text" name="targetAscPoints" value="">
-				</div-->
+					<input id="targetAscPoints" class="form-control input1" type="text" name="targetAscPoints" value="20">
+				</div>
 				<div class="panel-body input-group">
 					<div class="input-group-btn">
 						<button id="calculateAscension" class="btn btn-success" type="button" onclick="calculateAscension();">Calculate</button>

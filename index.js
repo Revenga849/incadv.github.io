@@ -40,18 +40,6 @@ function rpdrDec() {
 	
 }
 
-function ispInc() {
-	var isp = $('#isp')[0];
-	isp.value = Number.parseInt(isp.value) + 1;
-}
-
-function ispDec() {
-	var isp = $('#isp')[0];
-	var ispValue = Math.max(Number.parseInt(isp.value)-1,0);
-	isp.value = ispValue;
-	
-}
-
 var formatValue = function (value) {
 	if (value.layer instanceof Decimal || value.layer > 2) {
 		return value.toString();
@@ -80,15 +68,21 @@ var formatValue = function (value) {
 
 
 /* PRESTIGE */
+
 // RPPR - number of "Reduce prestige points requirements" ascension upgrades
 // RPDR - number of "Reduce prestige diminishing return" ascension upgrades
+// EL = MAX(1,layer-RPPR)
 // LM = 100 * MAX(layer - RPPR, 1)^2
-// LP = 0.8^( 0.975^(RPDR * sqrt(layer - RPPR)) )
+// LP = 0.8^( 0.975^(RPDR * sqrt(EL)) )
 // pcl - points needed
-// points = sqrt((pcl / LM)^LP)
+// Points = sqrt((pcl / LM)^LP)
+
+// Points = pcl/(EL^2)/100
+// if Points > 1:
+//   Points = Points^( 0.5*(0.8^(0.975^RPDR))^sqrt(EL) )
 
 // Reverse:
-// pcl = LM * points^(2 * LP^(-sqrt(layer - RPPR)))
+// pcl = LM * Points^(2 * LP^(-sqrt(EL))
 
 function getNextLayerPoints(curLayer, curPoints) {
 	var layer = new Decimal(curLayer);
@@ -117,7 +111,6 @@ function estimatePointsForLayer(curLayer, targetLayer, target) {
 	if ($('#rpdr').val() != "0") {
 		layerpow = layerpow.pow(new Decimal(0.975).pow($('#rpdr').val()));
 	}
-	//var pointsNeeded = layermult.mul(target.pow(new Decimal(2).mul(layerpow.recip().pow(layer.sqrt()))));
 	var pointsNeeded = target.pow(layerpow.pow(layer.sqrt().neg()).mul(new Decimal(2))).mul(layermult);
 	
 	if (curLayer == targetLayer) {
@@ -127,6 +120,7 @@ function estimatePointsForLayer(curLayer, targetLayer, target) {
 	}
 }
 
+// parse url params for prestige
 $(function() {
 	var rppr = getUrlParam('rppr');
 	if (rppr == null || rppr == 'undefined') {
@@ -207,39 +201,53 @@ function calculate() {
 
 
 /* ASCENSION */
+
 // points = (log(log(HL)) * (PL-10) / 100)^1.8 * 100
 // pcl = unspent+stats^2.2
 // points = (points / 100 * (pcl+1)^0.125)^0.8 * 100
 
 // Reverse:
-// HL = points^1.25 / (pcl+1)^0.125
+// HL = 10^10^((points^1.25 / (pcl+1)^0.125)^(1/1.8) * 100 * (PL-10))
 
-function estimateAscPoints(curPoints) {
-	for (let i=1; i<21; i++) {
+// Level per layer estimation
+function getLayerLevel(layer) {
+	return Decimal.layeradd(new Decimal(layer).sqr().mul(29/3056).add(new Decimal(layer).mul(50/169)).add(521/500) ,2);
+}
+
+function getAscPoints(layer, level, pcl) {
+	ascPoints = level.log10().log10().mul(layer.minus(10)).div(100).pow(1.8).times(100).floor();
+	if (ascPoints.cmp(100) > 0){
+		ascPoints = ascPoints.dividedBy(100).times(pcl.plus(1).pow(0.2)).pow(0.8).times(100).floor();
+		if (ascPoints.cmp(10000) > 0)
+			ascPoints = ascPoints.minus(10000).times(new Decimal(0.9).pow(ascPoints.log10().minus(4))).plus(10000).floor();
+	}
+	return ascPoints.dividedBy(100).floor();
+}
+
+function estimateAscPoints(curPoints, targetPoints) {
+	for (let i=1; i<=targetPoints; i++) {
 		var ascPointsTarget = new Decimal(i);
 		var ascPoints = new Decimal(0);
 		
-		var layer = new Decimal(20);
-		var level = new Decimal('e2.27e11');
+		var layer = new Decimal(19);
+		
+		while (ascPoints.lt(ascPointsTarget)) {
+			layer = layer.add(1);
+			var level = getLayerLevel(layer.add(1));
+			ascPoints = getAscPoints(layer, level, curPoints);
+		}
+		
 		var ascLevel = ascPointsTarget.pow(1.25);
 		if (ascPointsTarget.gt(1)) {
-			ascLevel = ascLevel.div(curPoints.add(1).pow(0.125)).mul(100).ceil().div(100);
+			ascLevel = ascLevel.div(curPoints.add(1).pow(0.2)).mul(100).ceil().div(100);
 		}
-		var ascLayerLevel = Decimal.layeradd(ascLevel.pow(1/1.8).mul(100).div(layer.minus(10)),2);
-		while (ascLayerLevel.gte(level)) {
-			layer = layer.add(1);
-			level = level.pow(6.1);
-			ascLayerLevel = Decimal.layeradd(ascLevel.pow(1/1.8).mul(100).div(layer.minus(10)),2);
-			//console.log(i + ' AP at PL' + layer + ': HL=' + formatValue(ascLayerLevel));
-		}
-		if (level.pow(0.3).gte(ascLayerLevel) && layer.gt(20)) {
-			layer = layer.minus(1);
-			ascLayerLevel = Decimal.layeradd(ascLevel.pow(1/1.8).mul(100).div(layer.minus(10)),2);
-		}
+		var ascLayerLevel = Decimal.layeradd(ascLevel.pow(1/1.8).mul(100).div(layer.minus(10)), 2);
+		
 		ascText[i] = (i<10?'&nbsp;&nbsp;':'') + '<b>' + i + '</b>' + ' Ascension points at layer <b>' + (layer.toNumber()) + '</b>, highest level <b>' + formatValue(ascLayerLevel.pow(1.01)) + '</b>';
 	}
 }
 
+// parse url params for ascension
 $(function() {
 	$('#currentAscPoints').val(getUrlParam('acp') || 0);
 	$('#currentAscExpUpgrades').val(getUrlParam('acu') || 0);
@@ -256,7 +264,7 @@ function calculateAscension() {
 	var currentPoints = new Decimal($('#currentAscPoints').val());
 	var currentExpUpgrades = new Decimal($('#currentAscExpUpgrades').val());
 	var targetLayer = Number.parseInt($('#targetAscLayer').val());
-	//var targetPoints = new Decimal($('#targetAscPoints').val());
+	var targetPoints = new Decimal($('#targetAscPoints').val());
 	var currentLayerPoints = currentPoints;
 	if (currentExpUpgrades.gt(0)) {
 		currentLayerPoints = currentLayerPoints.plus(currentExpUpgrades.pow(2.2).floor());
@@ -267,7 +275,7 @@ function calculateAscension() {
 	}
 	if (currentLayer <= targetLayer) {
 		document.getElementById('tabcontent').style.display = "block";
-		estimateAscPoints(currentLayerPoints);
+		estimateAscPoints(currentLayerPoints, targetPoints);
 		$('#calculation').html('<b>Calculation</b> <br><ol></ol>');
 
 		var first  = true;
