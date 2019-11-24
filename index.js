@@ -217,7 +217,7 @@ function getLayerLevel(layer) {
 function getAscPoints(layer, level, pcl) {
 	ascPoints = level.log10().log10().mul(layer.minus(10)).div(100).pow(1.8).times(100).floor();
 	if (ascPoints.cmp(100) > 0){
-		ascPoints = ascPoints.dividedBy(100).times(pcl.plus(1).pow(0.2)).pow(0.8).times(100).floor();
+		ascPoints = ascPoints.dividedBy(100).times(pcl.plus(1).pow(0.2)).pow(0.85).times(100).floor();
 		if (ascPoints.cmp(10000) > 0)
 			ascPoints = ascPoints.minus(10000).times(new Decimal(0.9).pow(ascPoints.log10().minus(4))).plus(10000).floor();
 	}
@@ -237,7 +237,7 @@ function estimateAscPoints(curPoints, targetPoints) {
 			ascPoints = getAscPoints(layer, level, curPoints);
 		}
 		
-		var ascLevel = ascPointsTarget.pow(1.25);
+		var ascLevel = ascPointsTarget.pow(1/0.85);
 		if (ascPointsTarget.gt(1)) {
 			ascLevel = ascLevel.div(curPoints.add(1).pow(0.2)).mul(100).ceil().div(100);
 		}
