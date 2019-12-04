@@ -117,16 +117,8 @@ function estimatePointsForLayer(curLayer, targetLayer, target) {
 
 // parse url params for prestige
 $(function() {
-	var rppr = getUrlParam('rppr');
-	if (rppr == null || rppr == 'undefined') {
-		rppr = 0;
-	}
-	$('#rppr').val(rppr);
-	var rpdr = getUrlParam('rpdr');
-	if (rpdr == null || rpdr == 'undefined') {
-		rpdr = 0;
-	}
-	$('#rpdr').val(rpdr);
+	$('#rppr').val(getUrlParam('rppr') || 0);
+	$('#rpdr').val(getUrlParam('rpdr') || 0);
 	var cl = Number.parseInt(getUrlParam('cl')) || 1;
 	var tl = cl;
 	$('#currentLayer').val(cl);
@@ -325,6 +317,8 @@ $(function() {
 	$('#currentAL1StatUpgrades').val(getUrlParam('acu') || getUrlParam('a1cu') || 0);
 	$('#currentAL2Points').val(getUrlParam('a2cp') || 0);
 	$('#currentAL2StatUpgrades').val(getUrlParam('a2cu') || 0);
+	$('#targetAscPoints').val(getUrlParam('atp') || 0);
+	$('#iapg').val(getUrlParam('iapg') || 0);
 	if (getUrlParam('acp') != null || getUrlParam('a1cp') != null) {
 		openTab({currentTarget:$('#ascensionLayersButton')[0]}, 'Ascension');
 		if (getUrlParam('a2cp') != null) {
