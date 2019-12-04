@@ -207,7 +207,7 @@ function calculatePrestige() {
 
 // Level per layer estimation
 function getLayerLevel(layer) {
-	return Decimal.layeradd(new Decimal(layer).sqr().mul(29/3056).add(new Decimal(layer).mul(50/169)).add(521/500) ,2);
+	return Decimal.layeradd(new Decimal(layer).sqr().mul(1/98).add(new Decimal(layer).mul(11/50)).add(11/4) ,2);
 }
 
 function getAL1Points(PL, level, pcl) {
