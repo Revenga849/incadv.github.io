@@ -19,7 +19,7 @@ function getUrlParam(param) {
 function upgInc(upgradeId) {
 	var upgrade = $('#' + upgradeId)[0];
 	var upgradeValue = Number.parseInt(upgrade.value) + 1;
-	if (upgradeId == 'tal') {
+	if (upgradeId == 'targetAscensionLayer') {
 		upgradeValue = Math.min(2, upgradeValue);
 	}
 	upgrade.value = upgradeValue;
@@ -29,7 +29,7 @@ function upgDec(upgradeId) {
 	var upgrade = $('#' + upgradeId)[0];
 	var upgradeValue = Number.parseInt(upgrade.value) - 1;
 	upgradeValue = Math.max(0, upgradeValue);
-	if (upgradeId == 'tal') {
+	if (upgradeId == 'targetAscensionLayer') {
 		upgradeValue = Math.max(1, upgradeValue);
 	}
 	upgrade.value = upgradeValue;
@@ -146,11 +146,11 @@ $(function() {
 	if (tl > cl) {
 		$('#targetLayer').val(tl);
 		$('#targetPoints').val(formatValue(tlp));
-		calculate();
+		calculatePrestige();
 	} else {
 		$('#targetLayer').val(cl+1);
 		$('#targetPoints').val(1);
-		calculate();
+		calculatePrestige();
 	}
 });
 
@@ -220,14 +220,31 @@ function getAL1Points(PL, level, pcl) {
 	return ascPoints.dividedBy(100).floor();
 }
 
-function getAL2Points(AL1, pcl) {
-	var ascPoints = AL1;
+function getALPoints(AL, points, pcl) {
+	var ascLayer = new Decimal(AL-1);
+	var ascPoints = points.div(new Decimal(ascLayer).sqr());
 	if (ascPoints.cmp(100) > 0){
-		ascPoints = ascPoints.dividedBy(100).times(pcl.plus(1).pow(0.2)).pow(0.85).times(100).floor();
+		ascPoints = ascPoints.dividedBy(100).times(pcl.plus(1).pow(0.2)).pow(new Decimal(0.85).pow(ascLayer)).times(100).floor();
 		if(ascPoints.dividedBy(100).cmp(pcl) > 0)
 			ascPoints = ascPoints.dividedBy(100).minus(pcl).dividedBy(ascPoints.dividedBy(100).minus(pcl).sqrt()).plus(pcl).times(100).floor();
 	}
 	return ascPoints.dividedBy(100).floor();
+}
+
+function getAPLevelPart1(points) {
+	return points.pow(1.048).mul(0.8).minus(points.pow(0.045).mul(90)).add(112);
+}
+
+function getAPLevel(target, layer, pcl) {
+	if (target.gt(100)) {
+		var ascLevel = getAPLevelPart1(target).pow(1/0.85);
+	} else {
+		var ascLevel = target.pow(1/0.85);
+	}
+	if (target.gt(1)) {
+		ascLevel = ascLevel.div(pcl.add(1).pow(0.2)).mul(100).ceil().div(100);
+	}
+	return Decimal.layeradd(ascLevel.pow(1/1.8).mul(100).div(layer.minus(10)).div(getIAPG(layer)), 2);
 }
 
 function getIAPG(PL) {
@@ -257,15 +274,12 @@ function estimateAscPoints(targetLayer, targetPoints) {
 				ascPoints = getAL1Points(layer, level, currentAL1Points);
 			}
 			
-			var ascLevel = ascPointsTarget.pow(1/0.85);
-			if (ascPointsTarget.gt(1)) {
-				ascLevel = ascLevel.div(currentAL1Points.add(1).pow(0.2)).mul(100).ceil().div(100);
-			}
-			var ascLayerLevel = Decimal.layeradd(ascLevel.pow(1/1.8).mul(100).div(layer.minus(10)).div(getIAPG(layer)), 2);
+			var ascLayerLevel = getAPLevel(ascPointsTarget, layer, currentAL1Points);
 			
-			ascText[i] = '&nbsp'.repeat(2*Math.floor(Math.log10(1e7/(i+1)))) + '<b>' + i 
-				+ '</b> AL1 points at layer <b>' + (layer.toNumber()) 
-				+ '</b>, highest level <b>' + formatValue(ascLayerLevel.pow(1.01)) + '</b>';
+			ascText[i] = '&nbsp'.repeat(2*Math.floor(Math.log10(1e7/(i+1)))) 
+				+ '<b>' + i + '</b>'
+				+ ' AL1 points at layer <b>' + (layer.toNumber()) + '</b>'
+				+ ', highest level <b>' + formatValue(ascLayerLevel.pow(1.01)) + '</b>';
 		}
 	} else if (targetLayer == 2) {
 		var currentAL2Points = new Decimal($('#currentAL2Points').val());
@@ -283,20 +297,17 @@ function estimateAscPoints(targetLayer, targetPoints) {
 			layer = layer.add(1);
 			var level = getLayerLevel(layer.add(1));
 			var AL1PointsTmp = getAL1Points(layer, level, currentAL1Points);
-			var AL2PointsTmp = getAL2Points(AL1PointsTmp.add(currentAL1Points), currentAL2Points);
+			var AL2PointsTmp = getALPoints(targetLayer, AL1PointsTmp.add(currentAL1Points), currentAL2Points);
 			
 			if (AL1PointsTmp.gt(AL1Points)) {
 				AL1Points = AL1PointsTmp;
 				
-				var ascLevel = AL1Points.pow(1/0.85);
-				if (AL1Points.gt(1)) {
-					ascLevel = ascLevel.div(currentAL1Points.add(1).pow(0.2)).mul(100).ceil().div(100);
-				}
-				var ascLayerLevel = Decimal.layeradd(ascLevel.pow(1/1.8).mul(100).div(layer.minus(10)).div(getIAPG(layer)), 2);
+				var ascLayerLevel = getAPLevel(AL1Points, layer, currentAL1Points);
 				
-				ascTextVal = '&nbsp'.repeat(AL1Points.gt(1e4)?1:Decimal.floor(Decimal.log10(new Decimal(1e7).div(AL1Points.plus(1)))).mul(2)) + '<b>' + formatValue(AL1Points) 
-				+ '</b> AL1 points at layer <b>' + (layer.toNumber()) 
-				+ '</b>, highest level <b>' + formatValue(ascLayerLevel.pow(1.01)) + '</b>';
+				ascTextVal = '&nbsp'.repeat(AL1Points.gt(1e4)?1:Decimal.floor(Decimal.log10(new Decimal(1e7).div(AL1Points.plus(1)))).mul(2)) 
+					+ '<b>' + formatValue(AL1Points) + '</b>'
+					+ ' AL1 points at layer <b>' + (layer.toNumber()) + '</b>'
+					+ ', highest level <b>' + formatValue(ascLayerLevel.pow(1.01)) + '</b>' + '(' + formatValue(level) + ')';
 				
 				if (AL2PointsTmp.gt(AL2Points)) {
 					AL2Points = AL2PointsTmp;
@@ -317,7 +328,7 @@ $(function() {
 	if (getUrlParam('acp') != null || getUrlParam('a1cp') != null) {
 		openTab({currentTarget:$('#ascensionLayersButton')[0]}, 'Ascension');
 		if (getUrlParam('a2cp') != null) {
-			$('#tal').val(2);
+			$('#targetAscensionLayer').val(2);
 			drawAL();
 		}
 		calculateAscension();
@@ -325,7 +336,7 @@ $(function() {
 });
 
 function drawAL() {
-	var AL = Number.parseInt($('#tal').val());
+	var AL = Number.parseInt($('#targetAscensionLayer').val());
 	if (AL == 2) {
 		$('#AL2p').show();
 		$('#targetAscPointsLabel').text('Target AL2 Ascension Points');
@@ -338,7 +349,7 @@ function drawAL() {
 var ascText = [];
 function calculateAscension() {
 	ascText = [];
-	var targetLayer = Number.parseInt($('#tal').val());
+	var targetLayer = Number.parseInt($('#targetAscensionLayer').val());
 	var targetPoints = new Decimal($('#targetAscPoints').val());
 
 	document.getElementById('tabcontent').style.display = "block";
@@ -348,13 +359,6 @@ function calculateAscension() {
 	var first  = true;
 	var i = 0;
 	ascText.forEach((a,b)=>{
-		var color = 200*(i)/ascText.length;
-		i++;
-		color = Number.parseInt(color.toFixed(0)).toString(16);
-		if (color.length == 1) {
-			color = '0' + color;
-		}
-		var colorcode = '#ff' + color + color;
 		var li = $('<li />').html(a).addClass('point-' + b);
 		$('#calculation > ol').append(li);
 	});
