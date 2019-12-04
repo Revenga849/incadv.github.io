@@ -61,9 +61,9 @@ ol > li {
 	margin: 8px;
 }
 
-.form-inline .input-digits {
+.input-digits {
 	width:50px !important;
-	cursor: default;
+	cursor: default !important;
 }
 
 .btn-group {

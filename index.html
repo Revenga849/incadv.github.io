@@ -53,30 +53,30 @@
 				</div>
 				
 				<form class="form-inline">
-					<div class="panel-body input-group upgrade-30">
+					<div class="panel-body input-group">
 						<label id ="rpprLabel" for="rppr" class="input-group-addon">Reduce prestige points requirements</label>
 						<span class="input-group-btn">
-							<button class="btn btn-group btn-inline" style="border-radius:0" type="button" onclick="rpprDec();">
+							<button class="btn btn-group btn-inline" style="border-radius:0" type="button" onclick="upgDec('rppr');">
 								<strong>-</strong>
 							</button>
 						</span>
 						<input id="rppr" type="text" style="text-align: center" class="form-control input-digits" value="0" disabled="true">
 						<span class="input-group-btn">
-							<button class="btn btn-group" type="button" onclick="rpprInc();">
+							<button class="btn btn-group" type="button" onclick="upgInc('rppr');">
 								<strong>+</strong>
 							</button>
 						</span>
 					</div>
-					<div class="panel-body input-group upgrade-30">
+					<div class="panel-body input-group">
 						<label id ="rpdrLabel" for="rpdr" class="input-group-addon">Reduce prestige diminishing return</label>
 						<span class="input-group-btn">
-							<button class="btn btn-group btn-inline" style="border-radius:0" type="button" onclick="rpdrDec();">
+							<button class="btn btn-group btn-inline" style="border-radius:0" type="button" onclick="upgDec('rpdr');">
 								<strong>-</strong>
 							</button>
 						</span>
 						<input id="rpdr" type="text" style="text-align: center" class="form-control input-digits" value="0" disabled="true">
 						<span class="input-group-btn">
-							<button class="btn btn-group" type="button" onclick="rpdrInc();">
+							<button class="btn btn-group" type="button" onclick="upgInc('rpdr');">
 								<strong>+</strong>
 							</button>
 						</span>
@@ -84,7 +84,7 @@
 				</form>
 				<div class="panel-body input-group">
 					<div class="input-group-btn">
-						<button id="calculate" class="btn btn-success" type="button" onclick="calculate();">Calculate</button>
+						<button id="calculate" class="btn btn-success" type="button" onclick="calculatePrestige();">Calculate</button>
 					</div>
 				</div>
 			</div>
@@ -98,26 +98,67 @@
 					But considering those selected, ascension point gain calculation is accurate.<br><br>
 					<b>Fill your current ascension unspent points and exp upgrades below (0 if you have none):</b>
 				</div>
-				<div class="panel-body input-group">
+				<!--div class="panel-body input-group">
 					<label id="currentAscLayerLabel" class="input-group-addon" for="currentAscLayer">Current Ascension layer</label>
 					<input id="currentAscLayer" disabled="disabled" class="form-control input1" type="text" name="currentAscLayer" value="1">
+				</div-->
+				<form class="form-inline">
+					<div class="panel-body input-group">
+						<label id ="talLabel" for="tal" class="input-group-addon">Target Ascension layer</label>
+						<span class="input-group-btn">
+							<button class="btn btn-group btn-inline" style="border-radius:0" type="button" onclick="upgDec('tal'); drawAL();">
+								<strong>-</strong>
+							</button>
+						</span>
+						<input id="tal" type="text" style="text-align: center" class="form-control input-digits" value="1" disabled="true">
+						<span class="input-group-btn">
+							<button class="btn btn-group" type="button" onclick="upgInc('tal');  drawAL();">
+								<strong>+</strong>
+							</button>
+						</span>
+					</div>
+				</form>
+				<div id="AL1p">
+					<div class="panel-body input-group">
+						<label id="currentAL1PointsLabel" class="input-group-addon" for="currentAL1Points">Current AL1 unspent points</label>
+						<input id="currentAL1Points" class="form-control input1" type="text" name="currentAL1Points" value="0">
+					</div>
+					<div class="panel-body input-group">
+						<label id="currentAL1StatUpgradesLabel" class="input-group-addon" for="currentAL1StatUpgrades">Current AL1 stat upgrades</label>
+						<input id="currentAL1StatUpgrades" class="form-control input1" type="text" name="currentAL1StatUpgrades" value="0">
+					</div>
 				</div>
-				<div class="panel-body input-group">
-					<label id="currentAscPointsLabel" class="input-group-addon" for="currentAscPoints">Current unspent points</label>
-					<input id="currentAscPoints" class="form-control input1" type="text" name="currentAscPoints" value="0">
+				<div id="AL2p" style="display: none">
+					<div class="panel-body input-group">
+						<label id="currentAL2PointsLabel" class="input-group-addon" for="currentAL2Points">Current AL2 unspent points</label>
+						<input id="currentAL2Points" class="form-control input1" type="text" name="currentAL2Points" value="0">
+					</div>
+					<div class="panel-body input-group">
+						<label id="currentAL2StatUpgradesLabel" class="input-group-addon" for="currentAL2StatUpgrades">Current AL2 stat upgrades</label>
+						<input id="currentAL2StatUpgrades" class="form-control input1" type="text" name="currentAL2StatUpgrades" value="0">
+					</div>
 				</div>
+				<hr/>
 				<div class="panel-body input-group">
-					<label id="currentAscExpUpgradesLabel" class="input-group-addon" for="currentAscExpUpgrades">Current exp upgrades</label>
-					<input id="currentAscExpUpgrades" class="form-control input1" type="text" name="currentAscExpUpgrades" value="0">
-				</div>
-				<div class="panel-body input-group">
-					<label id="targetAscLayerLabel" class="input-group-addon" for="targetAscLayer">Target Ascension layer</label>
-					<input id="targetAscLayer" disabled="disabled" class="form-control input1" type="text" name="targetAscLayer" value="1">
-				</div>
-				<div class="panel-body input-group">
-					<label id="targetAscPointsLabel" class="input-group-addon" for="targetAscPoints">Target Ascension Points</label>
+					<label id="targetAscPointsLabel" class="input-group-addon" for="targetAscPoints">Target AL1 Ascension Points</label>
 					<input id="targetAscPoints" class="form-control input1" type="text" name="targetAscPoints" value="20">
 				</div>
+				<form class="form-inline">
+					<div class="panel-body input-group">
+						<label id ="iapgLabel" for="iapg" class="input-group-addon">Improved ascension points gain</label>
+						<span class="input-group-btn">
+							<button class="btn btn-group btn-inline" style="border-radius:0" type="button" onclick="upgDec('iapg');">
+								<strong>-</strong>
+							</button>
+						</span>
+						<input id="iapg" type="text" style="text-align: center" class="form-control input-digits" value="0" disabled="true">
+						<span class="input-group-btn">
+							<button class="btn btn-group" type="button" onclick="upgInc('iapg');">
+								<strong>+</strong>
+							</button>
+						</span>
+					</div>
+				</form>
 				<div class="panel-body input-group">
 					<div class="input-group-btn">
 						<button id="calculateAscension" class="btn btn-success" type="button" onclick="calculateAscension();">Calculate</button>
