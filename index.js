@@ -299,7 +299,7 @@ function estimateAscPoints(targetLayer, targetPoints) {
 				ascTextVal = '&nbsp'.repeat(AL1Points.gt(1e4)?1:Decimal.floor(Decimal.log10(new Decimal(1e7).div(AL1Points.plus(1)))).mul(2)) 
 					+ '<b>' + formatValue(AL1Points) + '</b>'
 					+ ' AL1 points at layer <b>' + (layer.toNumber()) + '</b>'
-					+ ', highest level <b>' + formatValue(ascLayerLevel.pow(1.01)) + '</b>' + '(' + formatValue(level) + ')';
+					+ ', highest level <b>' + formatValue(ascLayerLevel.pow(1.01)) + '</b>';
 				
 				if (AL2PointsTmp.gt(AL2Points)) {
 					AL2Points = AL2PointsTmp;
