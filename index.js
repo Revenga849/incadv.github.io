@@ -66,30 +66,32 @@ var formatValue = function (value) {
 
 // RPPR - number of "Reduce prestige points requirements" ascension upgrades
 // RPDR - number of "Reduce prestige diminishing return" ascension upgrades
-// EL = MAX(1,layer-RPPR)
-// LM = 100 * MAX(layer - RPPR, 1)^2
-// LP = 0.8^( 0.975^(RPDR * sqrt(EL)) )
+// EL = MAX{1,layer-RPPR}
+// LM = 100 * EL^2
+// ERPDR = RPDR>=8 ? RPDR*2-7 : RPDR
+// LP = MIN{0.83, 0.8^( sqrt(EL) * 0.975^(ERPDR) )}/2
 // pcl - points needed
-// Points = sqrt((pcl / LM)^LP)
 
-// Points = pcl/(EL^2)/100
-// if Points > 1:
-//   Points = Points^( 0.5*(0.8^(0.975^RPDR))^sqrt(EL) )
+// Points = (pcl/LM)^LP
 
 // Reverse:
-// pcl = LM * Points^(2 * LP^(-sqrt(EL))
+// pcl = LM * Points^(1/LP)
 
 function getNextLayerPoints(curLayer, curPoints) {
 	var layer = new Decimal(curLayer);
 	if ($('#rppr').val() != "0") {
-		layer = layer.minus($('#rppr').val());
+		layer = Decimal.max(new Decimal(1), layer.minus($('#rppr').val()));
 	}
-	var layermult = Decimal.max(new Decimal(1), layer).sqr().mul(new Decimal(100));
+	var layermult = layer.sqr().mul(new Decimal(100));
 	var layerpow = new Decimal(0.8);
-	if ($('#rpdr').val() != "0") {
-		layerpow = layerpow.pow(new Decimal(0.975).pow($('#rpdr').val()));
+	var rpdr = new Decimal($('#rpdr').val());
+	if (rpdr.neq(0)) {
+		if (rpdr.gte(8)) {
+			rpdr = rpdr.mul(2).minus(7);
+		}
 	}
-	return curPoints.div(layermult).pow(layerpow.pow(layer.sqrt()).div(2));
+	layerpow = Decimal.min(new Decimal(0.83), layerpow.pow(new Decimal(0.975).pow(rpdr).mul(layer.sqrt()))).div(2);
+	return curPoints.div(layermult).pow(layerpow);
 }
 
 function estimatePointsForLayer(curLayer, targetLayer, target) {
@@ -103,10 +105,14 @@ function estimatePointsForLayer(curLayer, targetLayer, target) {
 	}
 	var layermult = layer.sqr().mul(new Decimal(100));
 	var layerpow = new Decimal(0.8);
-	if ($('#rpdr').val() != "0") {
-		layerpow = layerpow.pow(new Decimal(0.975).pow($('#rpdr').val()));
+	var rpdr = new Decimal($('#rpdr').val());
+	if (rpdr.neq(0)) {
+		if (rpdr.gte(8)) {
+			rpdr = rpdr.mul(2).minus(7);
+		}
 	}
-	var pointsNeeded = target.pow(layerpow.pow(layer.sqrt().neg()).mul(new Decimal(2))).mul(layermult);
+	layerpow = Decimal.min(new Decimal(0.83), layerpow.pow(new Decimal(0.975).pow(rpdr).mul(layer.sqrt()))).div(2);
+	var pointsNeeded = target.pow(layerpow.recip()).mul(layermult);
 	
 	if (curLayer == targetLayer) {
 		return pointsNeeded;
