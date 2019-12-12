@@ -23,6 +23,7 @@ function upgInc(upgradeId) {
 		upgradeValue = Math.min(2, upgradeValue);
 	}
 	upgrade.value = upgradeValue;
+	return upgradeValue;
 }
 
 function upgDec(upgradeId) {
@@ -33,6 +34,7 @@ function upgDec(upgradeId) {
 		upgradeValue = Math.max(1, upgradeValue);
 	}
 	upgrade.value = upgradeValue;
+	return upgradeValue;
 }
 
 var formatValue = function (value) {
@@ -194,9 +196,9 @@ function calculatePrestige() {
 
 
 /* ASCENSION */
-// iapg - improved ascension points gain
-// IAPG = max{1, PL/(15+10*AL)} : repetitive
-// points = (log(log(HL)) * (PL-10) * IAPG / 100)^1.8 * 100
+// IAPG - improved ascension points gain
+// EIAPG = max{1, PL/(15+10*IAPG)} : repetitive
+// points = (log(log(HL)) * (PL-10) * EIAPG / 100)^1.8 * 100
 // pcl = unspent+stats^2.2
 // points = (points / 100 * (pcl+1)^0.2)^0.85 * 100
 
@@ -364,6 +366,39 @@ function calculateAscension() {
 	});
 
 };
+
+
+/* ASCENSION STATS */
+// cost of upgrade = floor{upgrade^2.2} - floor{(upgrade-1)^2.2}
+function updateAscInfo(infoId, value) {
+	$('#'+infoId).val('^' + (value+1));
+	updateAscCosts();
+}
+
+function updateAscCosts() {
+	var cur = Number.parseInt($('#ascCurStats').val());
+	var target = Number.parseInt($('#ascTargetStats').val());
+	
+	if (cur<target && target > 0) {
+		document.getElementById('tabcontent').style.display = "block";
+		$('#calculation').html('<b>Calculation</b> <br><ol></ol>');
+		var total = new Decimal(0);
+		for (let i=cur+1; i <= target; i++) {
+			var cost = Decimal.pow(i, 2.2).floor().minus(Decimal.pow(i-1, 2.2).floor());
+			total = total.plus(cost);
+			cost = '^' + (i+1) + ': ' + formatValue(cost) + 'AP';
+			var li = $('<li />').html(cost).addClass('point-' + i);
+			$('#calculation > ol').append(li);
+		}
+		total = 'Total: ' + formatValue(total) + 'AP';
+		var li = $('<li />').html(total).addClass('point-' + (target+1));
+		$('#calculation > ol').prepend(li);
+	} else {
+		$('#calculation').html('<b>Calculation</b> <br><ol></ol>');
+	}
+	
+	
+}
 
 function openTab(evt, tabName) {
   var i, tabcontent, tablinks;

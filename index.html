@@ -29,6 +29,7 @@
 		<div class="tab">
 			<button id="prestigeLayersButton" class="tablinks active" onclick="openTab(event, 'Prestige');">Layers</button>
 			<button id="ascensionLayersButton" class="tablinks" onclick="openTab(event, 'Ascension');">Ascension points</button>
+			<button id="ascensionUpgradesButton" class="tablinks" onclick="openTab(event, 'AscensionStats');updateAscCosts();">Ascension stats costs</button>
 		</div>
 		<div id="Prestige" class="tabcontent" style="display:block;">
 			<div class="panel panel-primary">		
@@ -164,6 +165,47 @@
 						<button id="calculateAscension" class="btn btn-success" type="button" onclick="calculateAscension();">Calculate</button>
 					</div>
 				</div>
+			</div>
+		</div>
+		<div id="AscensionStats" class="tabcontent">
+			<div class="panel panel-primary">		
+				<div class="panel-heading">
+					<b>Ascension stat upgrades costs</b>
+				</div>
+				<form class="form-inline">
+					<div class="panel-body input-group">
+						<label id ="ascCurStatsLabel" for="ascCurStats" class="input-group-addon">Current stat upgrades</label>
+						<span class="input-group-btn">
+							<button class="btn btn-group btn-inline" style="border-radius:0" type="button" onclick="updateAscInfo('ascCurStatsInfo', upgDec('ascCurStats'));">
+								<strong>-</strong>
+							</button>
+						</span>
+						<input id="ascCurStats" type="text" style="text-align: center" class="form-control input-digits" value="0" disabled="true">
+						<span class="input-group-btn">
+							<button class="btn btn-group btn-inline" type="button" onclick="updateAscInfo('ascCurStatsInfo', upgInc('ascCurStats'));">
+								<strong>+</strong>
+							</button>
+						</span>
+						<input id="ascCurStatsInfo" type="text" style="text-align: center" class="form-control input-digits btn-group" value="^1" disabled="true">
+					</div>
+				</form>
+				<form class="form-inline">
+					<div class="panel-body input-group">
+						<label id ="ascTargetStatsLabel" for="ascTargetStats" class="input-group-addon">Target stat upgrades</label>
+						<span class="input-group-btn">
+							<button class="btn btn-group btn-inline" style="border-radius:0" type="button" onclick="updateAscInfo('ascTargetStatsInfo', upgDec('ascTargetStats'));">
+								<strong>-</strong>
+							</button>
+						</span>
+						<input id="ascTargetStats" type="text" style="text-align: center" class="form-control input-digits" value="0" disabled="true">
+						<span class="input-group-btn">
+							<button class="btn btn-group btn-inline" type="button" onclick="updateAscInfo('ascTargetStatsInfo', upgInc('ascTargetStats'));">
+								<strong>+</strong>
+							</button>
+						</span>
+						<input id="ascTargetStatsInfo" type="text" style="text-align: center" class="form-control input-digits btn-group" value="^1" disabled="true">
+					</div>
+				</form>
 			</div>
 		</div>
 		<div id="tabcontent" class="tabcontent">
