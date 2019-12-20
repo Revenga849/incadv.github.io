@@ -38,13 +38,11 @@ function upgDec(upgradeId) {
 }
 
 var formatValue = function (value) {
-	if (value.layer instanceof Decimal || value.layer > 2) {
-		return value.toString();
-	}
 	if (!(value instanceof Decimal)) {
 		var value = new Decimal(value);
 	}
-	if (value < 10000) {
+	value = value.ceil();
+	if (value.lt(1000)) {
 		if (Number.isInteger(value.mag))
 			return (value).toFixed(0);
 		else 
@@ -54,11 +52,11 @@ var formatValue = function (value) {
 	var power = value.e;
 		
 	if (power > 10000) {
-        if (value.layer >= 2) {
-            return "e" + formatValue(value.log10());
-        } else {
-            return "e" + formatValue(new Decimal(value.e));
-        }
+		if (value.layer < 2) {
+			return "e" + formatValue(new Decimal(value.e));
+		} else {
+			return "e" + formatValue(value.log10());
+		}
 	}
 	return mantissa + "e" + power;
 }
@@ -276,10 +274,10 @@ function estimateAscPoints(targetLayer, targetPoints) {
 			
 			var ascLayerLevel = getAPLevel(ascPointsTarget, layer, currentAL1Points);
 			
-			ascText[i] = '&nbsp'.repeat(2*Math.floor(Math.log10(1e7/(i+1)))) 
+			ascText[i] = [layer, '&nbsp'.repeat(2*Math.floor(Math.log10(1e7/(i+1)))) 
 				+ '<b>' + i + '</b>'
 				+ ' AL1 points at layer <b>' + (layer.toNumber()) + '</b>'
-				+ ', highest level <b>' + formatValue(ascLayerLevel.pow(1.01)) + '</b>';
+				+ ', highest level <b>' + formatValue(ascLayerLevel.pow(1.01)) + '</b>'];
 		}
 	} else if (targetLayer == 2) {
 		var currentAL2Points = new Decimal($('#currentAL2Points').val());
@@ -309,11 +307,13 @@ function estimateAscPoints(targetLayer, targetPoints) {
 					+ ' AL1 points at layer <b>' + (layer.toNumber()) + '</b>'
 					+ ', highest level <b>' + formatValue(ascLayerLevel.pow(1.01)) + '</b>';
 				
+				var al2text = null;
 				if (AL2PointsTmp.gt(AL2Points)) {
 					AL2Points = AL2PointsTmp;
-					ascTextVal += '&nbsp'.repeat(4) + '<b>' + formatValue(AL2Points) + '</b> AL2 points';
+					al2text = '<b>' + formatValue(AL2Points) + '</b> AL2 points';
 				}
-				ascText.push(ascTextVal);
+				//ascText.push(ascTextVal);
+				ascText.push([layer, ascTextVal, al2text]);
 			}
 		}
 	}
@@ -360,8 +360,28 @@ function calculateAscension() {
 
 	var first  = true;
 	var i = 0;
+	var al1u = new Decimal($('#currentAL1StatUpgrades').val());
+	var al2u = new Decimal($('#currentAL2StatUpgrades').val());
 	ascText.forEach((a,b)=>{
-		var li = $('<li />').html(a).addClass('point-' + b);
+		var str = a[1];
+		var pl = a[0].sqr();
+		var aqv = new Decimal(10).pow(pl);
+		str += '&emsp;&emsp; [<b>PL:</b> x10^(' + formatValue(a[0]) + '^2=' + formatValue(pl) + ')]';
+		if (al1u.gt(0)) {
+			var al1 = al1u.add(1).pow(4);
+			str += '&emsp;[<b>L1:</b> ^' + formatValue(al1u.add(1)) + '^4=' + formatValue(al1) + ')]';
+			aqv = aqv.pow(al1);
+		}
+		if (al2u.gt(0)) {
+			var al2 = al2u.add(1).pow(6);
+			str += '&emsp;[<b>L2:</b> ^' + formatValue(al2u.add(1)) + '^6=' + formatValue(al2) + ')]';
+			aqv = aqv.pow(al2);
+		}
+		str += '&emsp;[<b>AT:</b> ' + formatValue(aqv) + 'x]';
+		if (a[2] != null) {
+			str += '&emsp;' + a[2];
+		}
+		var li = $('<li />').html(str).addClass('point-' + b);
 		$('#calculation > ol').append(li);
 	});
 
