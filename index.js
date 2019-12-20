@@ -332,10 +332,10 @@ $(function() {
 		openTab({currentTarget:$('#ascensionLayersButton')[0]}, 'Ascension');
 		if (getUrlParam('a2cp') != null) {
 			$('#targetAscensionLayer').val(2);
-			$('#targetAscPoints').val(getUrlParam('atp').add(5));
+			$('#targetAscPoints').val(Number.parseInt(atp) + 5);
 			drawAL();
 		} else {
-			$('#targetAscPoints').val(getUrlParam('atp').add(20));
+			$('#targetAscPoints').val(Number.parseInt(atp) + 20);
 		}
 		calculateAscension();
 	}
