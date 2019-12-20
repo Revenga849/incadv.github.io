@@ -325,13 +325,17 @@ $(function() {
 	$('#currentAL1StatUpgrades').val(getUrlParam('acu') || getUrlParam('a1cu') || 0);
 	$('#currentAL2Points').val(getUrlParam('a2cp') || 0);
 	$('#currentAL2StatUpgrades').val(getUrlParam('a2cu') || 0);
+	var atp = getUrlParam('atp') || 0;
 	$('#targetAscPoints').val(getUrlParam('atp') || 0);
 	$('#iapg').val(getUrlParam('iapg') || 0);
 	if (getUrlParam('acp') != null || getUrlParam('a1cp') != null) {
 		openTab({currentTarget:$('#ascensionLayersButton')[0]}, 'Ascension');
 		if (getUrlParam('a2cp') != null) {
 			$('#targetAscensionLayer').val(2);
+			$('#targetAscPoints').val(getUrlParam('atp').add(5));
 			drawAL();
+		} else {
+			$('#targetAscPoints').val(getUrlParam('atp').add(20));
 		}
 		calculateAscension();
 	}
