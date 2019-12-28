@@ -411,12 +411,12 @@ function calculateAscension() {
 			str += '&emsp;&emsp; [<b>PL:</b> x10^(' + formatValue(a[0]) + '^' + formatValue(plp, 2) + '=' + formatValue(pl) + ')]';
 			if (al1u.gt(0)) {
 				var al1 = al1u.plus(1).pow(4);
-				str += '&emsp;[<b>L1:</b> ^' + formatValue(al1u.plus(1)) + '^4=' + formatValue(al1) + ')]';
+				str += '&emsp;[<b>L1:</b> ^' + formatValue(al1u.plus(1)) + '^4=' + formatValue(al1) + ']';
 				aqv = aqv.pow(al1);
 			}
 			if (al2u.gt(0)) {
 				var al2 = al2u.plus(1).pow(6);
-				str += '&emsp;[<b>L2:</b> ^' + formatValue(al2u.plus(1)) + '^6=' + formatValue(al2) + ')]';
+				str += '&emsp;[<b>L2:</b> ^' + formatValue(al2u.plus(1)) + '^6=' + formatValue(al2) + ']';
 				aqv = aqv.pow(al2);
 			}
 			str += '&emsp;[<b>AT:</b> ' + formatValue(aqv) + 'x]';
