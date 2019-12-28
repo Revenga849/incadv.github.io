@@ -22,6 +22,9 @@ function upgInc(upgradeId) {
 	if (upgradeId == 'targetAscensionLayer') {
 		upgradeValue = Math.min(2, upgradeValue);
 	}
+	if (upgradeId == 'ipp') {
+		upgradeValue = Math.min(1, upgradeValue);
+	}
 	upgrade.value = upgradeValue;
 	return upgradeValue;
 }
@@ -33,15 +36,18 @@ function upgDec(upgradeId) {
 	if (upgradeId == 'targetAscensionLayer') {
 		upgradeValue = Math.max(1, upgradeValue);
 	}
+	if (upgradeId == 'ipp') {
+		upgradeValue = Math.max(0, upgradeValue);
+	}
 	upgrade.value = upgradeValue;
 	return upgradeValue;
 }
 
-var formatValue = function (value) {
+var formatValue = function (value, prec=0) {
 	if (!(value instanceof Decimal)) {
 		var value = new Decimal(value);
 	}
-	value = value.ceil();
+	if (prec==0) value = value.round();
 	if (value.lt(1000)) {
 		if (Number.isInteger(value.mag))
 			return (value).toFixed(0);
@@ -205,7 +211,7 @@ function calculatePrestige() {
 
 // Level per layer estimation
 function getLayerLevel(layer) {
-	return Decimal.layeradd(new Decimal(layer).sqr().mul(1/98).add(new Decimal(layer).mul(11/50)).add(11/4) ,2);
+	return Decimal.layeradd(new Decimal(layer).sqr().mul(1/98).plus(new Decimal(layer).mul(11/50)).plus(11/4) ,2);
 }
 
 function getAL1Points(PL, level, pcl) {
@@ -213,7 +219,7 @@ function getAL1Points(PL, level, pcl) {
 	if (ascPoints.cmp(100) > 0){
 		ascPoints = ascPoints.dividedBy(100).times(pcl.plus(1).pow(0.2)).pow(0.85).times(100).floor();
 		if (ascPoints.cmp(10000) > 0)
-			ascPoints = ascPoints.minus(10000).times(new Decimal(0.9).pow(ascPoints.log10().minus(4))).plus(10000).floor();
+			ascPoints = ascPoints.times(ascPoints.dividedBy(10000).pow(new Decimal(0.9).log10())).floor();
 	}
 	return ascPoints.dividedBy(100).floor();
 }
@@ -222,15 +228,30 @@ function getALPoints(AL, points, pcl) {
 	var ascLayer = new Decimal(AL-1);
 	var ascPoints = points.div(new Decimal(ascLayer).sqr());
 	if (ascPoints.cmp(100) > 0){
-		ascPoints = ascPoints.dividedBy(100).times(pcl.plus(1).pow(0.2)).pow(new Decimal(0.85).pow(ascLayer)).times(100).floor();
+		ascPoints = ascPoints.dividedBy(100).times(pcl.plus(1).pow(0.2)).pow(new Decimal(0.85).pow(ascLayer.sqrt())).times(100).floor();
 		if(ascPoints.dividedBy(100).cmp(pcl) > 0)
 			ascPoints = ascPoints.dividedBy(100).minus(pcl).dividedBy(ascPoints.dividedBy(100).minus(pcl).sqrt()).plus(pcl).times(100).floor();
 	}
 	return ascPoints.dividedBy(100).floor();
 }
 
+function estimateAL2Points(target, accumulated) {
+	//y = (layer^2 * (100^((0.85)^sqrt(layer)) * x)^((1/0.85)^sqrt(layer)))/(a+1)^0.2
+	if (target.eq(1)) {
+		return new Decimal(100);
+	}
+	var eAL = new Decimal(1);
+	var discount = accumulated.plus(1).pow(0.2);
+	var points = target;
+	if (target.gt(accumulated)) {
+		points = accumulated.mul(accumulated.minus(points.mul(2)).plus(1)).plus(points.sqr());
+	}
+	points = points.mul(new Decimal(100).pow(new Decimal(0.85).pow(eAL))).pow(new Decimal(1/0.85).pow(eAL.sqrt())).mul(eAL.sqr()).div(discount).ceil();
+	return points;
+}
+
 function getAPLevelPart1(points) {
-	return points.pow(1.048).mul(0.8).minus(points.pow(0.045).mul(90)).add(112);
+	return points.pow(1.048).mul(0.8).minus(points.pow(0.045).mul(90)).plus(112);
 }
 
 function getAPLevel(target, layer, pcl) {
@@ -240,7 +261,7 @@ function getAPLevel(target, layer, pcl) {
 		var ascLevel = target.pow(1/0.85);
 	}
 	if (target.gt(1)) {
-		ascLevel = ascLevel.div(pcl.add(1).pow(0.2)).mul(100).ceil().div(100);
+		ascLevel = ascLevel.div(pcl.plus(1).pow(0.2)).mul(100).ceil().div(100);
 	}
 	return Decimal.layeradd(ascLevel.pow(1/1.8).mul(100).div(layer.minus(10)).div(getIAPG(layer)), 2);
 }
@@ -267,8 +288,8 @@ function estimateAscPoints(targetLayer, targetPoints) {
 			var layer = new Decimal(19);
 			
 			while (ascPoints.lt(ascPointsTarget)) {
-				layer = layer.add(1);
-				var level = getLayerLevel(layer.add(1));
+				layer = layer.plus(1);
+				var level = getLayerLevel(layer.plus(1));
 				ascPoints = getAL1Points(layer, level, currentAL1Points);
 			}
 			
@@ -289,31 +310,43 @@ function estimateAscPoints(targetLayer, targetPoints) {
 		var AL1Points = new Decimal(0);
 		var AL2Points = new Decimal(0);
 		var AL2PointsTarget = new Decimal(targetPoints);
+		if ($('#ap-only')[0].checked) {
+			while (AL2Points.lt(AL2PointsTarget)) {
+				AL2Points = AL2Points.plus(1);
+				AL1Points = estimateAL2Points(AL2Points, currentAL2Points);
+				ascTextVal = '&nbsp'.repeat(AL1Points.gt(1e3)?1:Decimal.floor(Decimal.log10(new Decimal(1e7).div(AL1Points.plus(1)))).mul(2))
+						+ '<b>' + formatValue(AL1Points) + '</b>'
+						+ ' AL1 points';
+				al2text = 'for <b>' + formatValue(AL2Points) + '</b> AL2 points';
+				ascText.push([null, ascTextVal, al2text]);
+			}
+		} else {
 		
-		var layer = new Decimal(19);
-		while (AL2Points.lt(AL2PointsTarget)) {
-			layer = layer.add(1);
-			var level = getLayerLevel(layer.add(1));
-			var AL1PointsTmp = getAL1Points(layer, level, currentAL1Points);
-			var AL2PointsTmp = getALPoints(targetLayer, AL1PointsTmp.add(currentAL1Points), currentAL2Points);
-			
-			if (AL1PointsTmp.gt(AL1Points)) {
-				AL1Points = AL1PointsTmp;
+			var layer = new Decimal(19);
+			while (AL2Points.lt(AL2PointsTarget)) {
+				layer = layer.plus(1);
+				var level = getLayerLevel(layer.plus(1));
+				var AL1PointsTmp = getAL1Points(layer, level, currentAL1Points);
+				var AL2PointsTmp = getALPoints(targetLayer, AL1PointsTmp.plus(currentAL1Points), currentAL2Points);
 				
-				var ascLayerLevel = getAPLevel(AL1Points, layer, currentAL1Points);
-				
-				ascTextVal = '&nbsp'.repeat(AL1Points.gt(1e4)?1:Decimal.floor(Decimal.log10(new Decimal(1e7).div(AL1Points.plus(1)))).mul(2)) 
-					+ '<b>' + formatValue(AL1Points) + '</b>'
-					+ ' AL1 points at layer <b>' + (layer.toNumber()) + '</b>'
-					+ ', highest level <b>' + formatValue(ascLayerLevel.pow(1.01)) + '</b>';
-				
-				var al2text = null;
-				if (AL2PointsTmp.gt(AL2Points)) {
-					AL2Points = AL2PointsTmp;
-					al2text = '<b>' + formatValue(AL2Points) + '</b> AL2 points';
+				if (AL1PointsTmp.gt(AL1Points)) {
+					AL1Points = AL1PointsTmp;
+					
+					var ascLayerLevel = getAPLevel(AL1Points, layer, currentAL1Points);
+					
+					ascTextVal = '&nbsp'.repeat(AL1Points.gt(1e3)?1:Decimal.floor(Decimal.log10(new Decimal(1e7).div(AL1Points.plus(1)))).mul(2)) 
+						+ '<b>' + formatValue(AL1Points) + '</b>'
+						+ ' AL1 points at layer <b>' + (layer.toNumber()) + '</b>'
+						+ ', highest level <b>' + formatValue(ascLayerLevel.pow(1.01)) + '</b>';
+					
+					var al2text = null;
+					if (AL2PointsTmp.gt(AL2Points)) {
+						AL2Points = AL2PointsTmp;
+						al2text = '<b>' + formatValue(AL2Points) + '</b> AL2 points';
+					}
+					//ascText.push(ascTextVal);
+					ascText.push([layer, ascTextVal, al2text]);
 				}
-				//ascText.push(ascTextVal);
-				ascText.push([layer, ascTextVal, al2text]);
 			}
 		}
 	}
@@ -345,9 +378,11 @@ function drawAL() {
 	var AL = Number.parseInt($('#targetAscensionLayer').val());
 	if (AL == 2) {
 		$('#AL2p').show();
+		$('#ap-only-container').show();
 		$('#targetAscPointsLabel').text('Target AL2 Ascension Points');
 	} else {
 		$('#AL2p').hide();
+		$('#ap-only-container').hide();
 		$('#targetAscPointsLabel').text('Target AL1 Ascension Points');
 	}
 }
@@ -368,20 +403,24 @@ function calculateAscension() {
 	var al2u = new Decimal($('#currentAL2StatUpgrades').val());
 	ascText.forEach((a,b)=>{
 		var str = a[1];
-		var pl = a[0].sqr();
-		var aqv = new Decimal(10).pow(pl);
-		str += '&emsp;&emsp; [<b>PL:</b> x10^(' + formatValue(a[0]) + '^2=' + formatValue(pl) + ')]';
-		if (al1u.gt(0)) {
-			var al1 = al1u.add(1).pow(4);
-			str += '&emsp;[<b>L1:</b> ^' + formatValue(al1u.add(1)) + '^4=' + formatValue(al1) + ')]';
-			aqv = aqv.pow(al1);
+		
+		if (a[0] != null) {
+			var plp = Decimal.max(($('#ipp').val()==1?a[0].div(18).pow(0.4).mul(2):new Decimal(2)),new Decimal(2));
+			var pl = a[0].pow(plp);
+			var aqv = new Decimal(10).pow(pl);
+			str += '&emsp;&emsp; [<b>PL:</b> x10^(' + formatValue(a[0]) + '^' + formatValue(plp, 2) + '=' + formatValue(pl) + ')]';
+			if (al1u.gt(0)) {
+				var al1 = al1u.plus(1).pow(4);
+				str += '&emsp;[<b>L1:</b> ^' + formatValue(al1u.plus(1)) + '^4=' + formatValue(al1) + ')]';
+				aqv = aqv.pow(al1);
+			}
+			if (al2u.gt(0)) {
+				var al2 = al2u.plus(1).pow(6);
+				str += '&emsp;[<b>L2:</b> ^' + formatValue(al2u.plus(1)) + '^6=' + formatValue(al2) + ')]';
+				aqv = aqv.pow(al2);
+			}
+			str += '&emsp;[<b>AT:</b> ' + formatValue(aqv) + 'x]';
 		}
-		if (al2u.gt(0)) {
-			var al2 = al2u.add(1).pow(6);
-			str += '&emsp;[<b>L2:</b> ^' + formatValue(al2u.add(1)) + '^6=' + formatValue(al2) + ')]';
-			aqv = aqv.pow(al2);
-		}
-		str += '&emsp;[<b>AT:</b> ' + formatValue(aqv) + 'x]';
 		if (a[2] != null) {
 			str += '&emsp;' + a[2];
 		}

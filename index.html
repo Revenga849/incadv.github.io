@@ -118,6 +118,10 @@
 							</button>
 						</span>
 					</div>
+					<div id="ap-only-container" class="panel-body input-group" style="display: none">
+						<input type="checkbox" class="form-check-input" id="ap-only" value="ap-only">
+						<label class="form-check-label" for="ap-only">AP only</label>
+					</div>
 				</form>
 				<div id="AL1p">
 					<div class="panel-body input-group">
@@ -155,6 +159,20 @@
 						<input id="iapg" type="text" style="text-align: center" class="form-control input-digits" value="0" disabled="true">
 						<span class="input-group-btn">
 							<button class="btn btn-group" type="button" onclick="upgInc('iapg');">
+								<strong>+</strong>
+							</button>
+						</span>
+					</div>
+					<div class="panel-body input-group">
+						<label id ="ippLabel" for="ipp" class="input-group-addon">Improved prestige power</label>
+						<span class="input-group-btn">
+							<button class="btn btn-group btn-inline" style="border-radius:0" type="button" onclick="upgDec('ipp');">
+								<strong>-</strong>
+							</button>
+						</span>
+						<input id="ipp" type="text" style="text-align: center" class="form-control input-digits" value="0" disabled="true">
+						<span class="input-group-btn">
+							<button class="btn btn-group" type="button" onclick="upgInc('ipp');">
 								<strong>+</strong>
 							</button>
 						</span>
