@@ -69,9 +69,9 @@ var formatValue = function (value, prec=0) {
 		
 	if (power > 10000) {
 		if (value.layer < 2) {
-			return "e" + formatValue(new Decimal(value.e));
+			return "e" + formatValue(new Decimal(value.e), prec);
 		} else {
-			return "e" + formatValue(value.log10());
+			return "e" + formatValue(value.log10(), prec);
 		}
 	}
 	return mantissa + "e" + power;
@@ -195,9 +195,9 @@ function calculatePrestige() {
 			//console.log(i + " of " + points.length + " " + colorcode);
 			if (first) {
 				first = false;
-				var layerstr = "In <span style='font-weight:bold;color:" + colorcode + ";'>Layer " + b + "</span> you need: " + formatValue(a);
+				var layerstr = "In <span style='font-weight:bold;color:" + colorcode + ";'>Layer " + b + "</span> you need: " + formatValue(a,2);
 			} else {
-				var layerstr = "In <span style='font-weight:bold;color:" + colorcode + ";'>Layer " + b + "</span> you'll get: <span>" + formatValue(a) + "</span>";
+				var layerstr = "In <span style='font-weight:bold;color:" + colorcode + ";'>Layer " + b + "</span> you'll get: <span>" + formatValue(a,2) + "</span>";
 			}
 			var li = $('<li />').html(layerstr).addClass('layer' + b);
 			$('#calculation > ol').append(li);
@@ -308,7 +308,7 @@ function estimateAscPoints(targetLayer, targetPoints) {
 			ascText[i] = [layer, '&nbsp'.repeat(2*Math.floor(Math.log10(1e7/(i+1)))) 
 				+ '<b>' + i + '</b>'
 				+ ' AL1 points at layer <b>' + (layer.toNumber()) + '</b>'
-				+ ', highest level <b>' + formatValue(ascLayerLevel.pow(1.01)) + '</b>'];
+				+ ', highest level <b>' + formatValue(ascLayerLevel.pow(1.01),2) + '</b>'];
 		}
 	} else if (targetLayer == 2) {
 		var currentAL2Points = new Decimal($('#currentAL2Points').val());
@@ -347,7 +347,7 @@ function estimateAscPoints(targetLayer, targetPoints) {
 					ascTextVal = '&nbsp'.repeat(AL1Points.gt(1e3)?1:Decimal.floor(Decimal.log10(new Decimal(1e7).div(AL1Points.plus(1)))).mul(2)) 
 						+ '<b>' + formatValue(AL1Points) + '</b>'
 						+ ' AL1 points at layer <b>' + (layer.toNumber()) + '</b>'
-						+ ', highest level <b>' + formatValue(ascLayerLevel.pow(1.01)) + '</b>';
+						+ ', highest level <b>' + formatValue(ascLayerLevel.pow(1.01),2) + '</b>';
 					
 					var al2text = null;
 					if (AL2PointsTmp.gt(AL2Points)) {
@@ -418,18 +418,18 @@ function calculateAscension() {
 			var plp = Decimal.max(($('#ipp').val()==1?a[0].div(18).pow(0.4).mul(2):new Decimal(2)),new Decimal(2));
 			var pl = a[0].pow(plp);
 			var aqv = new Decimal(10).pow(pl);
-			str += '&emsp;&emsp; [<b>PL:</b> x10^(' + formatValue(a[0]) + '^' + formatValue(plp, 2) + '=' + formatValue(pl) + ')]';
+			str += '&emsp;&emsp; [<b>PL:</b> x10^(' + formatValue(a[0]) + '^' + formatValue(plp, 2) + '=' + formatValue(pl,2) + ')]';
 			if (al1u.gt(0)) {
 				var al1 = al1u.plus(1).pow(4);
-				str += '&emsp;[<b>L1:</b> ^' + formatValue(al1u.plus(1)) + '^4=' + formatValue(al1) + ']';
+				str += '&emsp;[<b>L1:</b> ^' + formatValue(al1u.plus(1)) + '^4=' + formatValue(al1,2) + ']';
 				aqv = aqv.pow(al1);
 			}
 			if (al2u.gt(0)) {
 				var al2 = al2u.plus(1).pow(6);
-				str += '&emsp;[<b>L2:</b> ^' + formatValue(al2u.plus(1)) + '^6=' + formatValue(al2) + ']';
+				str += '&emsp;[<b>L2:</b> ^' + formatValue(al2u.plus(1)) + '^6=' + formatValue(al2,2) + ']';
 				aqv = aqv.pow(al2);
 			}
-			str += '&emsp;[<b>AT:</b> ' + formatValue(aqv) + 'x]';
+			str += '&emsp;[<b>AT:</b> ' + formatValue(aqv,2) + 'x]';
 		}
 		if (a[2] != null) {
 			str += '&emsp;' + a[2];
@@ -563,7 +563,7 @@ function updateAscCosts() {
 	header2.append('<th scope="col"><b>Costs</b></th>');
 	for (let i=1; i<values[1].row.length; i++) {
 		header1.append('<th scope="col"><b>^' + values[1].row[i].al2 + '^6</b></th>');
-		header2.append('<th scope="col"><b>' + formatValue(values[1].row[i].cost) + '</b></th>');
+		header2.append('<th scope="col"><b>' + formatValue(values[1].row[i].cost,2) + '</b></th>');
 	}
 	table.append(header1);
 	table.append(header2);
@@ -571,7 +571,7 @@ function updateAscCosts() {
 	for (let i=1; i<values.length; i++) {
 		var row = $('<tr/>');
 		row.append('<th scope="row" style="background-color:#E5E0EC;"><b>^' + values[i].al1 + '^4</b></th>');
-		row.append('<th scope="row" style="background-color:#B6DDE8;"><b>' + formatValue(values[i].cost) + '</b></th>');
+		row.append('<th scope="row" style="background-color:#B6DDE8;"><b>' + formatValue(values[i].cost,2) + '</b></th>');
 		for (let j=1; j<values[i].row.length; j++) {
 			var color = perc2color(values[i].row[j].value.log10(), min.log10(), max.log10());
 			//console.log(formatValue(values[i].row[j].value,1) + ' ' + percentage + '%');
