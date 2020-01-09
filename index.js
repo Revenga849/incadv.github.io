@@ -325,9 +325,9 @@ function estimateAscPoints(targetLayer, targetPoints) {
 				AL2Points = AL2Points.plus(1);
 				AL1Points = estimateAL2Points(AL2Points, currentAL2Points);
 				ascTextVal = '&nbsp'.repeat(AL1Points.gt(1e3)?1:Decimal.floor(Decimal.log10(new Decimal(1e7).div(AL1Points.plus(1)))).mul(2))
-						+ '<b>' + formatValue(AL1Points) + '</b>'
+						+ '<b>' + formatValue(AL1Points,2) + '</b>'
 						+ ' AL1 points';
-				al2text = 'for <b>' + formatValue(AL2Points) + '</b> AL2 points';
+				al2text = 'for <b>' + formatValue(AL2Points,2) + '</b> AL2 points';
 				ascText.push([null, ascTextVal, al2text]);
 			}
 		} else {
@@ -345,14 +345,14 @@ function estimateAscPoints(targetLayer, targetPoints) {
 					var ascLayerLevel = getAPLevel(AL1Points, layer, currentAL1Points);
 					
 					ascTextVal = '&nbsp'.repeat(AL1Points.gt(1e3)?1:Decimal.floor(Decimal.log10(new Decimal(1e7).div(AL1Points.plus(1)))).mul(2)) 
-						+ '<b>' + formatValue(AL1Points) + '</b>'
+						+ '<b>' + formatValue(AL1Points,2) + '</b>'
 						+ ' AL1 points at layer <b>' + (layer.toNumber()) + '</b>'
 						+ ', highest level <b>' + formatValue(ascLayerLevel.pow(1.01),2) + '</b>';
 					
 					var al2text = null;
 					if (AL2PointsTmp.gt(AL2Points)) {
 						AL2Points = AL2PointsTmp;
-						al2text = '<b>' + formatValue(AL2Points) + '</b> AL2 points';
+						al2text = '<b>' + formatValue(AL2Points,2) + '</b> AL2 points';
 					}
 					//ascText.push(ascTextVal);
 					ascText.push([layer, ascTextVal, al2text]);
