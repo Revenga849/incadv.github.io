@@ -16,27 +16,37 @@ function getUrlParam(param) {
     return (param && param in params) ? params[param] : null;
 }
 
-function upgInc(upgradeId) {
+function checkValue(id) {
+	var upgrade = $('#' + id);
+	var upgradeValue = new Decimal(upgrade.val());
+	/*upgradeValue = upgradeValue.replace(/[^\d\.\,]/g, '');
+	var delimiter = Math.min(upgradeValue.indexOf(','), upgradeValue.indexOf('.'));
+	if (delimiter > 0)
+		upgradeValue = upgradeValue.substr(0, delimiter);*/
+	upgrade.val(formatValue(upgradeValue,2));
+}
+
+function upgInc(event, upgradeId) {
 	var upgrade = $('#' + upgradeId)[0];
-	var upgradeValue = Number.parseInt(upgrade.value) + 1;
+	var upgradeValue = Number.parseInt(upgrade.value) + (event.shiftKey?10:1);
 	if (upgradeId == 'targetAscensionLayer') {
 		upgradeValue = Math.min(2, upgradeValue);
 	}
-	if (upgradeId == 'ipp') {
+	if (upgradeId == 'ipp' || upgradeId == 'statsIPP') {
 		upgradeValue = Math.min(1, upgradeValue);
 	}
 	upgrade.value = upgradeValue;
 	return upgradeValue;
 }
 
-function upgDec(upgradeId) {
+function upgDec(event, upgradeId) {
 	var upgrade = $('#' + upgradeId)[0];
-	var upgradeValue = Number.parseInt(upgrade.value) - 1;
+	var upgradeValue = Number.parseInt(upgrade.value) - (event.shiftKey?10:1);
 	upgradeValue = Math.max(0, upgradeValue);
 	if (upgradeId == 'targetAscensionLayer') {
 		upgradeValue = Math.max(1, upgradeValue);
 	}
-	if (upgradeId == 'ipp') {
+	if (upgradeId == 'ipp' || upgradeId == 'statsIPP') {
 		upgradeValue = Math.max(0, upgradeValue);
 	}
 	upgrade.value = upgradeValue;
@@ -52,9 +62,9 @@ var formatValue = function (value, prec=0) {
 		if (Number.isInteger(value.mag))
 			return (value).toFixed(0);
 		else 
-			return (value).toFixed(2);
+			return (value).toFixed(prec);
 	}
-	var mantissa = value.mantissa.toFixed(3);
+	var mantissa = value.mantissa.toFixed(prec);
 	var power = value.e;
 		
 	if (power > 10000) {
@@ -215,7 +225,7 @@ function getLayerLevel(layer) {
 }
 
 function getAL1Points(PL, level, pcl) {
-	var ascPoints = level.log10().log10().mul(PL.minus(10).mul(getIAPG(PL))).div(100).pow(1.8).times(100).floor();
+	var ascPoints = level.log10().log10().pow(1.01).mul(PL.minus(10).mul(getIAPG(PL))).div(100).pow(1.8).times(100).floor();
 	if (ascPoints.cmp(100) > 0){
 		ascPoints = ascPoints.dividedBy(100).times(pcl.plus(1).pow(0.2)).pow(0.85).times(100).floor();
 		if (ascPoints.cmp(10000) > 0)
@@ -359,7 +369,7 @@ $(function() {
 	$('#currentAL2Points').val(getUrlParam('a2cp') || 0);
 	$('#currentAL2StatUpgrades').val(getUrlParam('a2cu') || 0);
 	var atp = getUrlParam('atp') || 0;
-	$('#targetAscPoints').val(getUrlParam('atp') || 0);
+	$('#targetAscPoints').val(getUrlParam('atp') || 5);
 	$('#iapg').val(getUrlParam('iapg') || 0);
 	if (getUrlParam('acp') != null || getUrlParam('a1cp') != null) {
 		openTab({currentTarget:$('#ascensionLayersButton')[0]}, 'Ascension');
@@ -433,34 +443,143 @@ function calculateAscension() {
 
 /* ASCENSION STATS */
 // cost of upgrade = floor{upgrade^2.2} - floor{(upgrade-1)^2.2}
-function updateAscInfo(infoId, value) {
-	$('#'+infoId).val('^' + (value+1));
-	updateAscCosts();
+
+function calcAscStats(id, pow) {
+	var ap = new Decimal($('#' + id).val());
+	ap = ap.plus(1);
+	$('#' + id + 'Info').val('^' + formatValue(ap) + pow);
+	return ap;
 }
 
-function updateAscCosts() {
-	var cur = Number.parseInt($('#ascCurStats').val());
-	var target = Number.parseInt($('#ascTargetStats').val());
-	
-	if (cur<target && target > 0) {
-		document.getElementById('tabcontent').style.display = "block";
-		$('#calculation').html('<b>Calculation</b> <br><ol></ol>');
-		var total = new Decimal(0);
-		for (let i=cur+1; i <= target; i++) {
-			var cost = Decimal.pow(i, 2.2).floor().minus(Decimal.pow(i-1, 2.2).floor());
-			total = total.plus(cost);
-			cost = '^' + (i+1) + ': ' + formatValue(cost) + 'AP';
-			var li = $('<li />').html(cost).addClass('point-' + i);
-			$('#calculation > ol').append(li);
-		}
-		total = 'Total: ' + formatValue(total) + 'AP';
-		var li = $('<li />').html(total).addClass('point-' + (target+1));
-		$('#calculation > ol').prepend(li);
+function calcStatsPL() {
+	var pl = new Decimal($('#statsPL').val());
+	if ($('#statsIPP').val() > 0 && pl > 17) {
+		var pow = pl.div(18).pow(0.4).mul(2);
 	} else {
-		$('#calculation').html('<b>Calculation</b> <br><ol></ol>');
+		var pow = 2;
 	}
+	pl = pl.pow(pow);
+	$('#statsPLInfo').val('^' + formatValue(pl));
+	return pl;
+}
+
+function calcStatsKreds() {
+	var kreds = new Decimal($('#statsKreds').val());
+	if (kreds.gt(0)) {
+		kreds = kreds.plus(1).pow(1.25).round();
+	} else {
+		kreds = new Decimal(1);
+	}
+	$('#statsKredsInfo').val('^' + formatValue(kreds));
+	return kreds;
+}
+
+function perc2color(perc,min,max) {
+	var base = max.minus(min);
+
+	if (base.eq(0)) { perc = 100; }
+	else {
+		perc = perc.minus(min).div(base).mul(100).div(5).floor().mul(5).toNumber(); 
+	}
+	var r, g, b = 0;
+	var percentile = 70;
+	var percmul = 255/percentile;
+	if (perc < percentile) {
+		r = 255;
+		g = Math.round(percmul * perc);
+	}
+	else {
+		g = 255;
+		r = Math.round(510 - percmul * perc);
+	}
+	var h = r * 0x10000 + g * 0x100 + b * 0x1;
+	return '#' + ('000000' + h.toString(16)).slice(-6);
+}
+
+var values;
+function updateAscCosts() {
+	var curAL1 = Number.parseInt($('#ascAL1Cur').val());
+	var curAL2 = Number.parseInt($('#ascAL2Cur').val());
+	var curPL = Number.parseInt($('#statsPL').val());
+	var statsIPP = Number.parseInt($('#statsIPP').val());
+	var statsKreds = Number.parseInt($('#statsKreds').val());
 	
+	values = [];
+	allvalues = [];
+	for (let i=1; i<33; i++) {
+		values[i] = [];
+		var row = [];
+		if (i==1) {
+			values[i].al1 = 1;
+			values[i].cost = new Decimal(0);
+		} else if (i==2) {
+			values[i].al1 = 2;
+			values[i].cost = new Decimal(curAL1>0?0:1);
+		} else {
+			values[i].al1 = Math.max(curAL1, 2)+i-2;
+			var cost = Decimal.pow(values[i].al1-1, 2.2).floor()
+				.minus(Decimal.pow(curAL1, 2.2).floor());
+			if (cost.lt(0)) 
+				cost = new Decimal(0);
+			values[i].cost = cost;
+		}
+		for (let j=1; j<13; j++) {
+			row[j] = [];
+			if (j==1) {
+				row[j].al2 = 1;
+				row[j].cost = new Decimal(0);
+			} else if (j==2) {
+				row[j].al2 = 2;
+				row[j].cost = new Decimal(curAL2>0?0:1);
+			} else {
+				row[j].al2 = Math.max(curAL2, 2)+j-2;
+				var cost = Decimal.pow(row[j].al2-1, 2.2).floor()
+					.minus(Decimal.pow(curAL2, 2.2).floor());
+				if (cost.lt(0)) 
+					cost = new Decimal(0);
+				row[j].cost = cost;
+			}
+			var value = 
+				 Decimal.pow(values[i].al1, 4)
+				.mul(Decimal.pow(row[j].al2, 6))
+				.mul(calcStatsPL())
+				.mul(calcStatsKreds());
+			row[j].value = value;
+			allvalues.push(value);
+		}
+		values[i].row = row;
+	}
+	var min = allvalues.reduce((a,b)=>a.lt(b)?a:b);
+	var max = allvalues.reduce((a,b)=>a.gt(b)?a:b);
 	
+	$('#calculation').html('<table id="statsTable" style="display: block" class="table table-bordered"/>');
+	var table = $('#statsTable');
+	
+	var header1 = $('<tr style="background-color:#EAF1DD"/>');
+	header1.append('<th scope="col" style="background-color:#BFBFBF;"><b><u>LOG10</u></b></th>');
+	header1.append('<th scope="col"><b>AL2</b></th>');
+	var header2 = $('<tr style="background-color:#B6DDE8"/>');
+	header2.append('<th scope="col" style="background-color:#E5E0EC;"><b>AL1</b></th>');
+	header2.append('<th scope="col"><b>Costs</b></th>');
+	for (let i=1; i<values[1].row.length; i++) {
+		header1.append('<th scope="col"><b>^' + values[1].row[i].al2 + '^6</b></th>');
+		header2.append('<th scope="col"><b>' + formatValue(values[1].row[i].cost) + '</b></th>');
+	}
+	table.append(header1);
+	table.append(header2);
+	
+	for (let i=1; i<values.length; i++) {
+		var row = $('<tr/>');
+		row.append('<th scope="row" style="background-color:#E5E0EC;"><b>^' + values[i].al1 + '^4</b></th>');
+		row.append('<th scope="row" style="background-color:#B6DDE8;"><b>' + formatValue(values[i].cost) + '</b></th>');
+		for (let j=1; j<values[i].row.length; j++) {
+			var color = perc2color(values[i].row[j].value.log10(), min.log10(), max.log10());
+			//console.log(formatValue(values[i].row[j].value,1) + ' ' + percentage + '%');
+			row.append('<td style="background-color:' + color + ';">e' + formatValue(values[i].row[j].value, 2) + '</td>');
+		}
+		table.append(row);
+	}
+	document.getElementById('tabcontent').style.display = "block";
 }
 
 function openTab(evt, tabName) {

@@ -61,8 +61,17 @@ ol > li {
 	margin: 8px;
 }
 
+.input-group-label {
+	width: 270px !important;
+}
+
 .input-digits {
-	width:50px !important;
+	width:80px !important;
+	cursor: default !important;
+}
+
+.input-digits-large {
+	width:auto !important;
 	cursor: default !important;
 }
 
