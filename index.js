@@ -57,7 +57,7 @@ function upgDec(event, upgradeId) {
 	var upgradeValue = Number.parseInt(upgrade.value) - (event.shiftKey?10:1);
 	upgradeValue = Math.max(0, upgradeValue);
 	if (upgradeId == 'targetAscensionLayer') {
-		//upgradeValue = Math.max(1, upgradeValue);
+		upgradeValue = Math.max(1, upgradeValue);
 		if (upgradeValue > 2) 
 			setHighAL();
 		else
@@ -432,10 +432,10 @@ function drawAL() {
 	} else {
 		$('#ALTargetContainer').hide();
 		$('#ap-only-container').hide();
-		$('#targetAscPointsLabel').text('Target AL' + (AL-1) + ' Ascension Points');
+		$('#targetAscPointsLabel').text('Target AL' + Math.max(1, (AL-1)) + ' Ascension Points');
 	}
-	$('#ALCurrentPointsLabel').text('Current AL' + (AL-1) + ' unspent points');
-	$('#ALCurrentStatsLabel').text('Current AL' + (AL-1) + ' stat upgrades');
+	$('#ALCurrentPointsLabel').text('Current AL' + Math.max(1, (AL-1)) + ' unspent points');
+	$('#ALCurrentStatsLabel').text('Current AL' + Math.max(1, (AL-1)) + ' stat upgrades');
 	$('#ALTargetPointsLabel').text('Current AL' + (AL) + ' unspent points');
 	$('#ALTargetStatsLabel').text('Current AL' + (AL) + ' stat upgrades');
 }
