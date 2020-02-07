@@ -418,6 +418,7 @@ function drawAL() {
 		$('#ALUnlocksContainer').hide();
 		$('#ALCurrentContainer').hide();
 	} else {
+		$('#ALUnlocksContainer').show();
 		if (AL <= 2) {
 			$('#ALCurrentContainer').show();
 		} else {
