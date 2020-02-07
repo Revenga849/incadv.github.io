@@ -30,7 +30,11 @@ function upgInc(event, upgradeId) {
 	var upgrade = $('#' + upgradeId)[0];
 	var upgradeValue = Number.parseInt(upgrade.value) + (event.shiftKey?10:1);
 	if (upgradeId == 'targetAscensionLayer') {
-		upgradeValue = Math.min(2, upgradeValue);
+		//upgradeValue = Math.min(2, upgradeValue);
+		if (upgradeValue > 2) 
+			setHighAL();
+		else
+			setLowAL();
 	}
 	if (upgradeId == 'ipp' || upgradeId == 'statsIPP') {
 		upgradeValue = Math.min(1, upgradeValue);
@@ -39,12 +43,25 @@ function upgInc(event, upgradeId) {
 	return upgradeValue;
 }
 
+function setHighAL() {
+	$('#ap-only')[0].checked = true;
+	$('#ap-only')[0].disabled = true;
+}
+
+function setLowAL() {
+	$('#ap-only')[0].disabled = false;
+}
+
 function upgDec(event, upgradeId) {
 	var upgrade = $('#' + upgradeId)[0];
 	var upgradeValue = Number.parseInt(upgrade.value) - (event.shiftKey?10:1);
 	upgradeValue = Math.max(0, upgradeValue);
 	if (upgradeId == 'targetAscensionLayer') {
-		upgradeValue = Math.max(1, upgradeValue);
+		//upgradeValue = Math.max(1, upgradeValue);
+		if (upgradeValue > 2) 
+			setHighAL();
+		else
+			setLowAL();
 	}
 	if (upgradeId == 'ipp' || upgradeId == 'statsIPP') {
 		upgradeValue = Math.max(0, upgradeValue);
@@ -224,7 +241,7 @@ function getLayerLevel(layer) {
 	return Decimal.layeradd(new Decimal(layer).sqr().mul(1/98).plus(new Decimal(layer).mul(11/50)).plus(11/4) ,2);
 }
 
-function getAL1Points(PL, level, pcl) {
+function getCurrentALPoints(PL, level, pcl) {
 	var ascPoints = level.log10().log10().pow(1.01).mul(PL.minus(10).mul(getIAPG(PL))).div(100).pow(1.8).times(100).floor();
 	if (ascPoints.cmp(100) > 0){
 		ascPoints = ascPoints.dividedBy(100).times(pcl.plus(1).pow(0.2)).pow(0.85).times(100).floor();
@@ -234,23 +251,37 @@ function getAL1Points(PL, level, pcl) {
 	return ascPoints.dividedBy(100).floor();
 }
 
-function getALPoints(AL, points, pcl) {
+function getALPointsFromCurrent(AL, points, pcl) {
 	var ascLayer = new Decimal(AL-1);
 	var ascPoints = points.div(new Decimal(ascLayer).sqr());
 	if (ascPoints.cmp(100) > 0){
 		ascPoints = ascPoints.dividedBy(100).times(pcl.plus(1).pow(0.2)).pow(new Decimal(0.85).pow(ascLayer.sqrt())).times(100).floor();
 		if(ascPoints.dividedBy(100).cmp(pcl) > 0)
-			ascPoints = ascPoints.dividedBy(100).minus(pcl).dividedBy(ascPoints.dividedBy(100).minus(pcl).sqrt()).plus(pcl).times(100).floor();
+			ascPoints = ascPoints.dividedBy(100).minus(pcl).sqrt().plus(pcl).times(100).floor();
 	}
 	return ascPoints.dividedBy(100).floor();
 }
 
-function estimateAL2Points(target, accumulated) {
-	//y = (layer^2 * (100^((0.85)^sqrt(layer)) * x)^((1/0.85)^sqrt(layer)))/(a+1)^0.2
+function getALPointsFromTarget(AL, target, accumulated) {
+	var eAL = new Decimal(AL).minus(1);
 	if (target.eq(1)) {
-		return new Decimal(100);
+		return eAL.sqr().mul(100);
 	}
-	var eAL = new Decimal(1);
+	var pcl = accumulated.plus(1);
+	var points = new Decimal(target);
+	if (target.gt(pcl)) {
+		points = accumulated.sqr().minus(points.mul(accumulated).mul(2)).plus(points.sqr()).plus(accumulated);
+	}
+	points = points.mul(Decimal.pow(100, Decimal.pow(0.85, eAL.sqrt()))).pow(Decimal.pow(1/0.85, eAL.sqrt())).mul(eAL.sqr()).div(pcl.pow(0.2)).ceil();
+	
+	/*var points = target.div(eAL.sqr().mul(100)).mul(accumulated.plus(1).pow(0.2)).pow(Decimal.pow(0.85, eAL.sqrt())).mul(100).floor().div(100);
+	if (points.gt(accumulated.plus(1))) {
+		points = points.minus(accumulated).sqrt().plus(accumulated);
+	}*/
+	return points;
+	if (target.eq(1)) {
+		return eAL.pow(2).mul(100);
+	}
 	var discount = accumulated.plus(1).pow(0.2);
 	var points = target;
 	if (target.gt(accumulated)) {
@@ -285,10 +316,10 @@ function getIAPG(PL) {
 }
 
 function estimateAscPoints(targetLayer, targetPoints) {
-	var currentAL1Points = new Decimal($('#currentAL1Points').val());
-	var currentAL1StatUpgrades = new Decimal($('#currentAL1StatUpgrades').val());
-	if (currentAL1StatUpgrades.gt(0)) {
-		currentAL1Points = currentAL1Points.plus(currentAL1StatUpgrades.pow(2.2).floor());
+	var ALCurrentPoints = new Decimal($('#ALCurrentPoints').val());
+	var ALCurrentStats = new Decimal($('#ALCurrentStats').val());
+	if (ALCurrentStats.gt(0)) {
+		ALCurrentPoints = ALCurrentPoints.plus(ALCurrentStats.pow(2.2).floor());
 	}
 	if (targetLayer == 1) {
 		for (let i=1; i<=targetPoints; i++) {
@@ -300,62 +331,58 @@ function estimateAscPoints(targetLayer, targetPoints) {
 			while (ascPoints.lt(ascPointsTarget)) {
 				layer = layer.plus(1);
 				var level = getLayerLevel(layer.plus(1));
-				ascPoints = getAL1Points(layer, level, currentAL1Points);
+				ascPoints = getCurrentALPoints(layer, level, ALCurrentPoints);
 			}
 			
-			var ascLayerLevel = getAPLevel(ascPointsTarget, layer, currentAL1Points);
+			var ascLayerLevel = getAPLevel(ascPointsTarget, layer, ALCurrentPoints);
 			
 			ascText[i] = [layer, '&nbsp'.repeat(2*Math.floor(Math.log10(1e7/(i+1)))) 
 				+ '<b>' + i + '</b>'
 				+ ' AL1 points at layer <b>' + (layer.toNumber()) + '</b>'
 				+ ', highest level <b>' + formatValue(ascLayerLevel.pow(1.01),2) + '</b>'];
 		}
-	} else if (targetLayer == 2) {
-		var currentAL2Points = new Decimal($('#currentAL2Points').val());
-		var currentAL2StatUpgrades = new Decimal($('#currentAL2StatUpgrades').val());
-		if (currentAL2StatUpgrades.gt(0)) {
-			currentAL2Points = currentAL2Points.plus(currentAL2StatUpgrades.pow(2.2).floor());
+	} else {
+		var ALTargetPoints = new Decimal($('#ALTargetPoints').val());
+		var ALTargetStats = new Decimal($('#ALTargetStats').val());
+		if (ALTargetStats.gt(0)) {
+			ALTargetPoints = ALTargetPoints.plus(ALTargetStats.pow(2.2).floor());
 		}
 		
-		var AL1Points = new Decimal(0);
-		var AL2Points = new Decimal(0);
-		var AL2PointsTarget = new Decimal(targetPoints);
+		var CurrentALPoints = new Decimal(0);
+		var ALTPoints = new Decimal(0);
+		var ALTPointsTarget = new Decimal(targetPoints);
 		if ($('#ap-only')[0].checked) {
-			while (AL2Points.lt(AL2PointsTarget)) {
-				AL2Points = AL2Points.plus(1);
-				AL1Points = estimateAL2Points(AL2Points, currentAL2Points);
-				ascTextVal = '&nbsp'.repeat(AL1Points.gt(1e3)?1:Decimal.floor(Decimal.log10(new Decimal(1e7).div(AL1Points.plus(1)))).mul(2))
-						+ '<b>' + formatValue(AL1Points,2) + '</b>'
-						+ ' AL1 points';
-				al2text = 'for <b>' + formatValue(AL2Points,2) + '</b> AL2 points';
-				ascText.push([null, ascTextVal, al2text]);
-			}
+			var ALTPoints = getALPointsFromTarget(targetLayer, targetPoints, ALTargetPoints);
+			ascTextVal = '&nbsp'.repeat(ALTPoints.gt(1e3)?1:Decimal.floor(Decimal.log10(new Decimal(1e7).div(ALTPoints.plus(1)))).mul(2))
+					+ '<b>' + formatValue(ALTPoints,2) + '</b>'
+					+ ' AL' + (targetLayer-1) + ' points';
+			alttext = 'for <b>' + formatValue(targetPoints,2) + '</b> AL' + targetLayer + ' points';
+			ascText.push([null, ascTextVal, alttext]);
 		} else {
-		
 			var layer = new Decimal(19);
-			while (AL2Points.lt(AL2PointsTarget)) {
+			while (ALTPoints.lt(ALTPointsTarget)) {
 				layer = layer.plus(1);
 				var level = getLayerLevel(layer.plus(1));
-				var AL1PointsTmp = getAL1Points(layer, level, currentAL1Points);
-				var AL2PointsTmp = getALPoints(targetLayer, AL1PointsTmp.plus(currentAL1Points), currentAL2Points);
+				var CurrentALPointsTmp = getCurrentALPoints(layer, level, ALCurrentPoints);
+				var ALTPointsTmp = getALPointsFromCurrent(targetLayer, CurrentALPointsTmp.plus(ALCurrentPoints), ALTargetPoints);
 				
-				if (AL1PointsTmp.gt(AL1Points)) {
-					AL1Points = AL1PointsTmp;
+				if (CurrentALPointsTmp.gt(CurrentALPoints)) {
+					CurrentALPoints = CurrentALPointsTmp;
 					
-					var ascLayerLevel = getAPLevel(AL1Points, layer, currentAL1Points);
+					var ascLayerLevel = getAPLevel(CurrentALPoints, layer, ALCurrentPoints);
 					
-					ascTextVal = '&nbsp'.repeat(AL1Points.gt(1e3)?1:Decimal.floor(Decimal.log10(new Decimal(1e7).div(AL1Points.plus(1)))).mul(2)) 
-						+ '<b>' + formatValue(AL1Points,2) + '</b>'
+					ascTextVal = '&nbsp'.repeat(CurrentALPoints.gt(1e3)?1:Decimal.floor(Decimal.log10(new Decimal(1e7).div(CurrentALPoints.plus(1)))).mul(2)) 
+						+ '<b>' + formatValue(CurrentALPoints,2) + '</b>'
 						+ ' AL1 points at layer <b>' + (layer.toNumber()) + '</b>'
 						+ ', highest level <b>' + formatValue(ascLayerLevel.pow(1.01),2) + '</b>';
 					
-					var al2text = null;
-					if (AL2PointsTmp.gt(AL2Points)) {
-						AL2Points = AL2PointsTmp;
-						al2text = '<b>' + formatValue(AL2Points,2) + '</b> AL2 points';
+					var alttext = null;
+					if (ALTPointsTmp.gt(ALTPoints)) {
+						ALTPoints = ALTPointsTmp;
+						alttext = '<b>' + formatValue(ALTPoints,2) + '</b> AL2 points';
 					}
 					//ascText.push(ascTextVal);
-					ascText.push([layer, ascTextVal, al2text]);
+					ascText.push([layer, ascTextVal, alttext]);
 				}
 			}
 		}
@@ -364,10 +391,10 @@ function estimateAscPoints(targetLayer, targetPoints) {
 
 // parse url params for ascension
 $(function() {
-	$('#currentAL1Points').val(getUrlParam('a1cp') || getUrlParam('acp') || 0);
-	$('#currentAL1StatUpgrades').val(getUrlParam('acu') || getUrlParam('a1cu') || 0);
-	$('#currentAL2Points').val(getUrlParam('a2cp') || 0);
-	$('#currentAL2StatUpgrades').val(getUrlParam('a2cu') || 0);
+	$('#ALCurrentPoints').val(getUrlParam('a1cp') || getUrlParam('acp') || 0);
+	$('#ALCurrentStats').val(getUrlParam('acu') || getUrlParam('a1cu') || 0);
+	$('#ALTargetPoints').val(getUrlParam('a2cp') || 0);
+	$('#ALTargetStats').val(getUrlParam('a2cu') || 0);
 	var atp = getUrlParam('atp') || 0;
 	$('#targetAscPoints').val(getUrlParam('atp') || 5);
 	$('#iapg').val(getUrlParam('iapg') || 0);
@@ -386,15 +413,30 @@ $(function() {
 
 function drawAL() {
 	var AL = Number.parseInt($('#targetAscensionLayer').val());
-	if (AL == 2) {
-		$('#AL2p').show();
-		$('#ap-only-container').show();
-		$('#targetAscPointsLabel').text('Target AL2 Ascension Points');
+	
+	if ($('#ap-only')[0].checked) {
+		$('#ALUnlocksContainer').hide();
+		$('#ALCurrentContainer').hide();
 	} else {
-		$('#AL2p').hide();
-		$('#ap-only-container').hide();
-		$('#targetAscPointsLabel').text('Target AL1 Ascension Points');
+		if (AL <= 2) {
+			$('#ALCurrentContainer').show();
+		} else {
+			$('#ALCurrentContainer').hide();
+		}
 	}
+	if (AL >= 2) {
+		$('#ALTargetContainer').show();
+		$('#ap-only-container').show();
+		$('#targetAscPointsLabel').text('Target AL' + AL + ' Ascension Points');
+	} else {
+		$('#ALTargetContainer').hide();
+		$('#ap-only-container').hide();
+		$('#targetAscPointsLabel').text('Target AL' + (AL-1) + ' Ascension Points');
+	}
+	$('#ALCurrentPointsLabel').text('Current AL' + (AL-1) + ' unspent points');
+	$('#ALCurrentStatsLabel').text('Current AL' + (AL-1) + ' stat upgrades');
+	$('#ALTargetPointsLabel').text('Current AL' + (AL) + ' unspent points');
+	$('#ALTargetStatsLabel').text('Current AL' + (AL) + ' stat upgrades');
 }
 
 var ascText = [];
@@ -409,8 +451,8 @@ function calculateAscension() {
 
 	var first  = true;
 	var i = 0;
-	var al1u = new Decimal($('#currentAL1StatUpgrades').val());
-	var al2u = new Decimal($('#currentAL2StatUpgrades').val());
+	var al1u = new Decimal($('#ALCurrentStats').val());
+	var al2u = new Decimal($('#ALTargetStats').val());
 	ascText.forEach((a,b)=>{
 		var str = a[1];
 		

@@ -160,22 +160,22 @@
 						</span>
 					</div>
 					<div id="ap-only-container" class="panel-body input-group" style="display: none">
-						<input type="checkbox" class="form-check-input" id="ap-only" value="ap-only">
+						<input type="checkbox" class="form-check-input" id="ap-only" value="ap-only" onclick="drawAL();">
 						<label class="form-check-label" for="ap-only">AP only</label>
 					</div>
 				</form>
-				<div id="AL1p">
+				<div id="ALCurrentContainer">
 					<form class="form-inline">
 						<div class="panel-body input-group">
-							<label id ="currentAL1PointsLabel" for="currentAL1Points" class="input-group-addon input-group-label">Current AL1 unspent points</label>
+							<label id ="ALCurrentPointsLabel" for="ALCurrentPoints" class="input-group-addon input-group-label">Current AL1 unspent points</label>
 							<span class="input-group-btn">
-								<button class="btn btn-group btn-inline" style="border-radius:0" type="button" onclick="upgDec(event, 'currentAL1Points');" tabIndex="-1">
+								<button class="btn btn-group btn-inline" style="border-radius:0" type="button" onclick="upgDec(event, 'ALCurrentPoints');" tabIndex="-1">
 									<strong>-</strong>
 								</button>
 							</span>
-							<input id="currentAL1Points" type="text" style="text-align: center" class="form-control input-digits" value="0" onChange="checkValue('currentAL1Points');">
+							<input id="ALCurrentPoints" type="text" style="text-align: center" class="form-control input-digits" value="0" onChange="checkValue('ALCurrentPoints');">
 							<span class="input-group-btn">
-								<button class="btn btn-group btn-inline" type="button" onclick="upgInc(event, 'currentAL1Points');" tabIndex="-1">
+								<button class="btn btn-group btn-inline" type="button" onclick="upgInc(event, 'ALCurrentPoints');" tabIndex="-1">
 									<strong>+</strong>
 								</button>
 							</span>
@@ -183,33 +183,33 @@
 					</form>
 					<form class="form-inline">
 						<div class="panel-body input-group">
-							<label id ="currentAL1StatUpgradesLabel" for="currentAL1StatUpgrades" class="input-group-addon input-group-label">Current AL1 stat upgrades</label>
+							<label id ="ALCurrentStatsLabel" for="ALCurrentStats" class="input-group-addon input-group-label">Current AL1 stat upgrades</label>
 							<span class="input-group-btn">
-								<button class="btn btn-group btn-inline" style="border-radius:0" type="button" onclick="upgDec(event, 'currentAL1StatUpgrades');" tabIndex="-1">
+								<button class="btn btn-group btn-inline" style="border-radius:0" type="button" onclick="upgDec(event, 'ALCurrentStats');" tabIndex="-1">
 									<strong>-</strong>
 								</button>
 							</span>
-							<input id="currentAL1StatUpgrades" type="text" style="text-align: center" class="form-control input-digits" value="0" onChange="checkValue('currentAL1StatUpgrades');">
+							<input id="ALCurrentStats" type="text" style="text-align: center" class="form-control input-digits" value="0" onChange="checkValue('ALCurrentStats');">
 							<span class="input-group-btn">
-								<button class="btn btn-group btn-inline" type="button" onclick="upgInc(event, 'currentAL1StatUpgrades');" tabIndex="-1">
+								<button class="btn btn-group btn-inline" type="button" onclick="upgInc(event, 'ALCurrentStats');" tabIndex="-1">
 									<strong>+</strong>
 								</button>
 							</span>
 						</div>
 					</form>
 				</div>
-				<div id="AL2p" style="display: none">
+				<div id="ALTargetContainer" style="display: none">
 					<form class="form-inline">
 						<div class="panel-body input-group">
-							<label id ="currentAL2PointsLabel" for="currentAL2Points" class="input-group-addon input-group-label">Current AL2 unspent points</label>
+							<label id ="ALTargetPointsLabel" for="ALTargetPoints" class="input-group-addon input-group-label">Current AL2 unspent points</label>
 							<span class="input-group-btn">
-								<button class="btn btn-group btn-inline" style="border-radius:0" type="button" onclick="upgDec(event, 'currentAL2Points');" tabIndex="-1">
+								<button class="btn btn-group btn-inline" style="border-radius:0" type="button" onclick="upgDec(event, 'ALTargetPoints');" tabIndex="-1">
 									<strong>-</strong>
 								</button>
 							</span>
-							<input id="currentAL2Points" type="text" style="text-align: center" class="form-control input-digits" value="0" onChange="checkValue('currentAL2Points');">
+							<input id="ALTargetPoints" type="text" style="text-align: center" class="form-control input-digits" value="0" onChange="checkValue('ALTargetPoints');">
 							<span class="input-group-btn">
-								<button class="btn btn-group btn-inline" type="button" onclick="upgInc(event, 'currentAL2Points');" tabIndex="-1">
+								<button class="btn btn-group btn-inline" type="button" onclick="upgInc(event, 'ALTargetPoints');" tabIndex="-1">
 									<strong>+</strong>
 								</button>
 							</span>
@@ -217,15 +217,15 @@
 					</form>
 					<form class="form-inline">
 						<div class="panel-body input-group">
-							<label id ="currentAL2StatUpgradesLabel" for="currentAL2StatUpgrades" class="input-group-addon input-group-label">Current AL2 stat upgrades</label>
+							<label id ="ALTargetStatsLabel" for="ALTargetStats" class="input-group-addon input-group-label">Current AL2 stat upgrades</label>
 							<span class="input-group-btn">
-								<button class="btn btn-group btn-inline" style="border-radius:0" type="button" onclick="upgDec(event, 'currentAL2StatUpgrades');" tabIndex="-1">
+								<button class="btn btn-group btn-inline" style="border-radius:0" type="button" onclick="upgDec(event, 'ALTargetStats');" tabIndex="-1">
 									<strong>-</strong>
 								</button>
 							</span>
-							<input id="currentAL2StatUpgrades" type="text" style="text-align: center" class="form-control input-digits" value="0" onChange="checkValue('currentAL2StatUpgrades');">
+							<input id="ALTargetStats" type="text" style="text-align: center" class="form-control input-digits" value="0" onChange="checkValue('ALTargetStats');">
 							<span class="input-group-btn">
-								<button class="btn btn-group btn-inline" type="button" onclick="upgInc(event, 'currentAL2StatUpgrades');" tabIndex="-1">
+								<button class="btn btn-group btn-inline" type="button" onclick="upgInc(event, 'ALTargetStats');" tabIndex="-1">
 									<strong>+</strong>
 								</button>
 							</span>
@@ -249,39 +249,41 @@
 						</span>
 					</div>
 				</form>
-				<hr/>
-				<form class="form-inline">
-					<div class="panel-body input-group">
-						<label id ="iapgLabel" for="iapg" class="input-group-addon input-group-label">Improved ascension points gain</label>
-						<span class="input-group-btn">
-							<button class="btn btn-group btn-inline" style="border-radius:0" type="button" onclick="upgDec(event, 'iapg');" tabIndex="-1">
-								<strong>-</strong>
-							</button>
-						</span>
-						<input id="iapg" type="text" style="text-align: center" class="form-control input-digits" value="0" onChange="checkValue('iapg');" disabled="true">
-						<span class="input-group-btn">
-							<button class="btn btn-group btn-inline" type="button" onclick="upgInc(event, 'iapg');" tabIndex="-1">
-								<strong>+</strong>
-							</button>
-						</span>
-					</div>
-				</form>
-				<form class="form-inline">
-					<div class="panel-body input-group">
-						<label id ="ippLabel" for="ipp" class="input-group-addon input-group-label">Improved prestige power</label>
-						<span class="input-group-btn">
-							<button class="btn btn-group btn-inline" style="border-radius:0" type="button" onclick="upgDec(event, 'ipp');" tabIndex="-1">
-								<strong>-</strong>
-							</button>
-						</span>
-						<input id="ipp" type="text" style="text-align: center" class="form-control input-digits" value="0" onChange="checkValue('ipp');" disabled="true">
-						<span class="input-group-btn">
-							<button class="btn btn-group btn-inline" type="button" onclick="upgInc(event, 'ipp');" tabIndex="-1">
-								<strong>+</strong>
-							</button>
-						</span>
-					</div>
-				</form>
+				<div id="ALUnlocksContainer">
+					<hr/>
+					<form class="form-inline">
+						<div class="panel-body input-group">
+							<label id ="iapgLabel" for="iapg" class="input-group-addon input-group-label">Improved ascension points gain</label>
+							<span class="input-group-btn">
+								<button class="btn btn-group btn-inline" style="border-radius:0" type="button" onclick="upgDec(event, 'iapg');" tabIndex="-1">
+									<strong>-</strong>
+								</button>
+							</span>
+							<input id="iapg" type="text" style="text-align: center" class="form-control input-digits" value="0" onChange="checkValue('iapg');" disabled="true">
+							<span class="input-group-btn">
+								<button class="btn btn-group btn-inline" type="button" onclick="upgInc(event, 'iapg');" tabIndex="-1">
+									<strong>+</strong>
+								</button>
+							</span>
+						</div>
+					</form>
+					<form class="form-inline">
+						<div class="panel-body input-group">
+							<label id ="ippLabel" for="ipp" class="input-group-addon input-group-label">Improved prestige power</label>
+							<span class="input-group-btn">
+								<button class="btn btn-group btn-inline" style="border-radius:0" type="button" onclick="upgDec(event, 'ipp');" tabIndex="-1">
+									<strong>-</strong>
+								</button>
+							</span>
+							<input id="ipp" type="text" style="text-align: center" class="form-control input-digits" value="0" onChange="checkValue('ipp');" disabled="true">
+							<span class="input-group-btn">
+								<button class="btn btn-group btn-inline" type="button" onclick="upgInc(event, 'ipp');" tabIndex="-1">
+									<strong>+</strong>
+								</button>
+							</span>
+						</div>
+					</form>
+				</div>
 				<hr/>
 				<div class="panel-body input-group">
 					<div class="input-group-btn">
