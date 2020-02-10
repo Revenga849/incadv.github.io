@@ -283,6 +283,22 @@
 							</span>
 						</div>
 					</form>
+					<form class="form-inline">
+						<div class="panel-body input-group">
+							<label id ="scarcityLabel" for="scarcity" class="input-group-addon input-group-label">Scarcity trials completed</label>
+							<span class="input-group-btn">
+								<button class="btn btn-group btn-inline" style="border-radius:0" type="button" onclick="upgDec(event, 'scarcity');" tabIndex="-1">
+									<strong>-</strong>
+								</button>
+							</span>
+							<input id="scarcity" type="text" style="text-align: center" class="form-control input-digits" value="0" onChange="checkValue('scarcity');" disabled="true">
+							<span class="input-group-btn">
+								<button class="btn btn-group btn-inline" type="button" onclick="upgInc(event, 'scarcity');" tabIndex="-1">
+									<strong>+</strong>
+								</button>
+							</span>
+						</div>
+					</form>
 				</div>
 				<hr/>
 				<div class="panel-body input-group">

@@ -242,7 +242,8 @@ function getLayerLevel(layer) {
 }
 
 function getCurrentALPoints(PL, level, pcl) {
-	var ascPoints = level.log10().log10().pow(1.01).mul(PL.minus(10).mul(getIAPG(PL))).div(100).pow(1.8).times(100).floor();
+	var scarcity = $('#scarcity').val();
+	var ascPoints = level.log10().log10().pow(Decimal.pow(1.01, scarcity)).mul(PL.minus(10).mul(getIAPG(PL))).div(100).pow(1.8).times(100).floor();
 	if (ascPoints.cmp(100) > 0){
 		ascPoints = ascPoints.dividedBy(100).times(pcl.plus(1).pow(0.2)).pow(0.85).times(100).floor();
 		if (ascPoints.cmp(10000) > 0)
@@ -274,20 +275,6 @@ function getALPointsFromTarget(AL, target, accumulated) {
 	}
 	points = points.mul(Decimal.pow(100, Decimal.pow(0.85, eAL.sqrt()))).pow(Decimal.pow(1/0.85, eAL.sqrt())).mul(eAL.sqr()).div(pcl.pow(0.2)).ceil();
 	
-	/*var points = target.div(eAL.sqr().mul(100)).mul(accumulated.plus(1).pow(0.2)).pow(Decimal.pow(0.85, eAL.sqrt())).mul(100).floor().div(100);
-	if (points.gt(accumulated.plus(1))) {
-		points = points.minus(accumulated).sqrt().plus(accumulated);
-	}*/
-	return points;
-	if (target.eq(1)) {
-		return eAL.pow(2).mul(100);
-	}
-	var discount = accumulated.plus(1).pow(0.2);
-	var points = target;
-	if (target.gt(accumulated)) {
-		points = accumulated.mul(accumulated.minus(points.mul(2)).plus(1)).plus(points.sqr());
-	}
-	points = points.mul(new Decimal(100).pow(new Decimal(0.85).pow(eAL))).pow(new Decimal(1/0.85).pow(eAL.sqrt())).mul(eAL.sqr()).div(discount).ceil();
 	return points;
 }
 
@@ -304,13 +291,14 @@ function getAPLevel(target, layer, pcl) {
 	if (target.gt(1)) {
 		ascLevel = ascLevel.div(pcl.plus(1).pow(0.2)).mul(100).ceil().div(100);
 	}
-	return Decimal.layeradd(ascLevel.pow(1/1.8).mul(100).div(layer.minus(10)).div(getIAPG(layer)), 2);
+	var scarcity = $('#scarcity').val();
+	return Decimal.layeradd(ascLevel.pow(Decimal.pow(1.01, scarcity).recip()).pow(1/1.8).mul(100).div(layer.minus(10)).div(getIAPG(layer)), 2);
 }
 
 function getIAPG(PL) {
 	var iapg = new Decimal(1);
 	for (let i = 0; i < $('#iapg').val(); i++) {
-		iapg = iapg.mul(Decimal.max(1, PL.div(25+10*i)));
+		iapg = iapg.mul(Decimal.max(1, PL.div(25+5*i)));
 	}
 	return iapg;
 }
