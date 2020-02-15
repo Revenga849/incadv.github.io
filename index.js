@@ -265,15 +265,45 @@ function getCurrentALPoints(PL, level, pcl) {
 	return ascPoints.dividedBy(100).floor();
 }
 
+function ascensionInverseApprox(AL, target, accumulated) {
+	var i = 0;
+	// find oom
+	var points = new Decimal(100);
+	var approx = getALPointsFromCurrent(AL, points, accumulated);
+	while (approx.lt(target)) {
+		points = points.mul(10);
+		approx = getALPointsFromCurrent(AL, points, accumulated);
+		i++;
+		if (i>10000) break;
+	}
+	
+	// iterative approximation
+	step = points;
+	for (var i=0; i<3; i++) {
+		points = points.minus(step);
+		step = step.div(10);
+		approx = getALPointsFromCurrent(AL, points, accumulated);
+		while (approx.lt(target)) {
+			points = points.plus(step);
+			approx = getALPointsFromCurrent(AL, points, accumulated);
+		}
+	}
+	
+	return points;
+}
+
 function getALPointsFromCurrent(AL, points, accumulated) {
-	var pcl = new Decimal(accumulated).plus(1);
 	var ascLayer = new Decimal(AL-1);
 	var ascPoints = points.div(new Decimal(ascLayer).sqr());
 	if (ascPoints.cmp(100) > 0){
-		ascPoints = ascPoints.dividedBy(100).times(pcl.pow(0.2)).pow(new Decimal(0.85).pow(ascLayer.sqrt())).times(100).floor();
-		if(ascPoints.dividedBy(100).cmp(pcl) > 0) {
+		ascPoints = ascPoints.dividedBy(100).times(accumulated.plus(1).pow(0.2)).pow(new Decimal(0.85).pow(ascLayer.sqrt())).times(100).floor();
+		if(ascPoints.dividedBy(100).cmp(accumulated) > 0) {
 			ascPoints = ascPoints.dividedBy(100);
-			ascPoints = ascPoints.div(accumulated).pow(0.25).mul(accumulated).plus(ascPoints.minus(accumulated).sqrt()).times(100).floor();
+			if (accumulated.eq(0))
+				ascPoints = ascPoints.minus(accumulated).sqrt();
+			else 
+				ascPoints = ascPoints.div(accumulated).pow(0.25).mul(accumulated).plus(ascPoints.minus(accumulated).sqrt());
+			ascPoints = ascPoints.times(100).floor();
 		}
 	}
 	return ascPoints.dividedBy(100).floor();
@@ -286,8 +316,13 @@ function getALPointsFromTarget(AL, target, accumulated) {
 	}
 	var pcl = accumulated.plus(1);
 	var points = new Decimal(target);
-	if (target.gt(pcl)) {
-		points = accumulated.sqr().mul(points.div(accumulated).sqrt()).minus(accumulated.mul(points).mul(points.div(accumulated).pow(0.25)).mul(2)).plus(accumulated).plus(points.sqr());
+	if (target.gt(accumulated)) {
+		return ascensionInverseApprox(AL, target, accumulated);
+		/*if (accumulated.eq(0)) {
+			points = points.sqr();
+		} else {
+			points = accumulated.sqr().mul(points.div(accumulated).sqrt()).minus(accumulated.mul(points).mul(points.div(accumulated).pow(0.25)).mul(2)).plus(accumulated).plus(points.sqr());
+		}*/
 	}
 	points = points.mul(Decimal.pow(100, Decimal.pow(0.85, eAL.sqrt()))).pow(Decimal.pow(1/0.85, eAL.sqrt())).mul(eAL.sqr()).div(pcl.pow(0.2)).ceil();
 	
@@ -357,6 +392,7 @@ function estimateAscPoints(targetLayer, targetPoints) {
 		var ALTPointsTarget = new Decimal(targetPoints);
 		if ($('#ap-only')[0].checked) {
 			var ALTPoints = getALPointsFromTarget(targetLayer, targetPoints, ALTargetPoints);
+			//var ALTPoints = ascensionInverseApprox(targetLayer, targetPoints, ALTargetPoints);
 			ascTextVal = '&nbsp'.repeat(ALTPoints.gt(1e3)?1:Decimal.floor(Decimal.log10(new Decimal(1e7).div(ALTPoints.plus(1)))).mul(2))
 					+ '<b>' + formatValue(ALTPoints,2) + '</b>'
 					+ ' AL' + (targetLayer-1) + ' points';
