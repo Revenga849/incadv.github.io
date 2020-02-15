@@ -252,13 +252,16 @@ function getCurrentALPoints(PL, level, pcl) {
 	return ascPoints.dividedBy(100).floor();
 }
 
-function getALPointsFromCurrent(AL, points, pcl) {
+function getALPointsFromCurrent(AL, points, accumulated) {
+	var pcl = new Decimal(accumulated).plus(1);
 	var ascLayer = new Decimal(AL-1);
 	var ascPoints = points.div(new Decimal(ascLayer).sqr());
 	if (ascPoints.cmp(100) > 0){
-		ascPoints = ascPoints.dividedBy(100).times(pcl.plus(1).pow(0.2)).pow(new Decimal(0.85).pow(ascLayer.sqrt())).times(100).floor();
-		if(ascPoints.dividedBy(100).cmp(pcl) > 0)
-			ascPoints = ascPoints.dividedBy(100).minus(pcl).sqrt().plus(pcl).times(100).floor();
+		ascPoints = ascPoints.dividedBy(100).times(pcl.pow(0.2)).pow(new Decimal(0.85).pow(ascLayer.sqrt())).times(100).floor();
+		if(ascPoints.dividedBy(100).cmp(pcl) > 0) {
+			ascPoints = ascPoints.dividedBy(100);
+			ascPoints = ascPoints.div(accumulated).pow(0.25).mul(accumulated).plus(ascPoints.minus(accumulated).sqrt()).times(100).floor();
+		}
 	}
 	return ascPoints.dividedBy(100).floor();
 }
@@ -271,7 +274,7 @@ function getALPointsFromTarget(AL, target, accumulated) {
 	var pcl = accumulated.plus(1);
 	var points = new Decimal(target);
 	if (target.gt(pcl)) {
-		points = accumulated.sqr().minus(points.mul(accumulated).mul(2)).plus(points.sqr()).plus(accumulated);
+		points = accumulated.sqr().mul(points.div(accumulated).sqrt()).minus(accumulated.mul(points).mul(points.div(accumulated).pow(0.25)).mul(2)).plus(accumulated).plus(points.sqr());
 	}
 	points = points.mul(Decimal.pow(100, Decimal.pow(0.85, eAL.sqrt()))).pow(Decimal.pow(1/0.85, eAL.sqrt())).mul(eAL.sqr()).div(pcl.pow(0.2)).ceil();
 	
