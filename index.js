@@ -28,7 +28,13 @@ function checkValue(id) {
 
 function upgInc(event, upgradeId) {
 	var upgrade = $('#' + upgradeId)[0];
-	var upgradeValue = Number.parseInt(upgrade.value) + (event.shiftKey?10:1);
+	var upgVal = new Decimal(upgrade.value);
+	upgVal = upgVal.plus(event.shiftKey?10:1);
+	if (upgVal.gt(Number.MAX_VALUE)) {
+		var upgradeValue = Number.MAX_VALUE;
+	} else {
+		var upgradeValue = upgVal.toNumber();
+	}
 	if (upgradeId == 'targetAscensionLayer') {
 		//upgradeValue = Math.min(2, upgradeValue);
 		if (upgradeValue > 2) 
@@ -49,12 +55,19 @@ function setHighAL() {
 }
 
 function setLowAL() {
+	$('#ap-only')[0].checked = false;
 	$('#ap-only')[0].disabled = false;
 }
 
 function upgDec(event, upgradeId) {
 	var upgrade = $('#' + upgradeId)[0];
-	var upgradeValue = Number.parseInt(upgrade.value) - (event.shiftKey?10:1);
+	var upgVal = new Decimal(upgrade.value);
+	upgVal = upgVal.minus(event.shiftKey?10:1);
+	if (upgVal.gt(Number.MAX_VALUE)) {
+		var upgradeValue = Number.MAX_VALUE;
+	} else {
+		var upgradeValue = upgVal.toNumber();
+	}
 	upgradeValue = Math.max(0, upgradeValue);
 	if (upgradeId == 'targetAscensionLayer') {
 		upgradeValue = Math.max(1, upgradeValue);
