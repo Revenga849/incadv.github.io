@@ -279,7 +279,7 @@ function ascensionInverseApprox(AL, target, accumulated) {
 	
 	// iterative approximation
 	step = points;
-	for (var i=0; i<3; i++) {
+	for (var i=0; i<5; i++) {
 		points = points.minus(step);
 		step = step.div(10);
 		approx = getALPointsFromCurrent(AL, points, accumulated);
@@ -289,7 +289,7 @@ function ascensionInverseApprox(AL, target, accumulated) {
 		}
 	}
 	
-	return points;
+	return points.floor();
 }
 
 function getALPointsFromCurrent(AL, points, accumulated) {
@@ -343,7 +343,7 @@ function getAPLevel(target, layer, pcl) {
 		ascLevel = ascLevel.div(pcl.plus(1).pow(0.2)).mul(100).ceil().div(100);
 	}
 	var scarcity = $('#scarcity').val();
-	return Decimal.layeradd(ascLevel.pow(Decimal.pow(1.01, scarcity).recip()).pow(1/1.8).mul(100).div(layer.minus(10)).div(getIAPG(layer)), 2);
+	return Decimal.layeradd(ascLevel.pow(1/1.8).mul(100).div(layer.minus(10)).div(getIAPG(layer)).pow(Decimal.pow(1.01, scarcity).recip()), 2);
 }
 
 function getIAPG(PL) {
