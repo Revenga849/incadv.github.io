@@ -109,12 +109,13 @@ var formatValue = function (value, prec=0) {
 
 
 /* PRESTIGE */
-
+//
+// !!!!!COMMENTS OUTDATED!!!!!
+//
 // RPPR - number of "Reduce prestige points requirements" ascension upgrades
 // RPDR - number of "Reduce prestige diminishing return" ascension upgrades
 // EL = MAX{1,layer-RPPR}
 // LM = 100 * EL^2
-// ERPDR = RPDR>=8 ? RPDR*2-7 : RPDR
 // LP = MIN{0.83, 0.8^( sqrt(EL) * 0.975^(ERPDR) )}/2
 // pcl - points needed
 
@@ -124,41 +125,52 @@ var formatValue = function (value, prec=0) {
 // pcl = LM * Points^(1/LP)
 
 function getNextLayerPoints(curLayer, curPoints) {
-	var layer = new Decimal(curLayer);
-	if ($('#rppr').val() != "0") {
-		layer = Decimal.max(new Decimal(1), layer.minus($('#rppr').val()));
+	var layer = new Decimal(curLayer).plus(1);
+	var rppr = $('#rppr').val();
+	var rpdr = $('#rpdr').val();
+	var ipl = $('#plipl').val();
+	if (rppr > 0) {
+		layer = Decimal.max(new Decimal(1), layer.minus(rppr));
 	}
-	var layermult = layer.sqr().mul(new Decimal(100));
+	
+	var layermult = layer.sqr();
 	var layerpow = new Decimal(0.8);
-	var rpdr = new Decimal($('#rpdr').val());
-	if (rpdr.neq(0)) {
-		if (rpdr.gte(8)) {
-			rpdr = rpdr.mul(2).minus(7);
-		}
+	if (rpdr > 0) {
+		layerpow = layerpow.pow(Decimal.pow(0.975, rpdr));
 	}
-	layerpow = Decimal.min(new Decimal(0.83), layerpow.pow(new Decimal(0.975).pow(rpdr).mul(layer.sqrt()))).div(2);
-	return curPoints.div(layermult).pow(layerpow);
+	layerpow = layerpow.pow(layer.sqrt());
+	if (ipl > 0) {
+		layermult = layermult.pow(Decimal.pow(1.2, ipl));
+		layerpow = layerpow.pow(Decimal.pow(1.2, ipl));
+	}
+	var points = curPoints.div(layermult).floor();
+	if (layerpow.gt(0.83)) layerpow = new Decimal(0.83);
+	return points.div(100).pow(layerpow).mul(100).floor().div(100).sqrt().mul(100).floor().div(100).floor();
 }
 
 function estimatePointsForLayer(curLayer, targetLayer, target) {
 	if (targetLayer < 1) {
 		return;
 	}
+	var rppr = $('#rppr').val();
+	var rpdr = $('#rpdr').val();
+	var ipl = $('#ipl').val();
 	points[targetLayer] = target;
 	var layer = new Decimal(targetLayer-1);
-	if ($('#rppr').val() != "0") {
-		layer = Decimal.max(new Decimal(1), layer.minus($('#rppr').val()));
+	if (rppr > 0) {
+		layer = Decimal.max(new Decimal(1), layer.minus(rppr));
 	}
-	var layermult = layer.sqr().mul(new Decimal(100));
 	var layerpow = new Decimal(0.8);
-	var rpdr = new Decimal($('#rpdr').val());
-	if (rpdr.neq(0)) {
-		if (rpdr.gte(8)) {
-			rpdr = rpdr.mul(2).minus(7);
-		}
+	var layermult = layer.sqr();
+	if (rpdr > 0) {
+		layerpow = layerpow.pow(Decimal.pow(0.975, rpdr));
 	}
-	layerpow = Decimal.min(new Decimal(0.83), layerpow.pow(new Decimal(0.975).pow(rpdr).mul(layer.sqrt()))).div(2);
-	var pointsNeeded = target.pow(layerpow.recip()).mul(layermult);
+	layerpow = layerpow.pow(layer.sqrt());
+	if (ipl > 0) {
+		layermult = layermult.pow(Decimal.pow(1.2, ipl));
+		layerpow = layerpow.pow(Decimal.pow(1.2, ipl));
+	}
+	var pointsNeeded = target.pow(2).pow(layerpow.recip()).mul(layermult).mul(100);
 	
 	if (curLayer == targetLayer) {
 		return pointsNeeded;
@@ -240,6 +252,9 @@ function calculatePrestige() {
 
 
 /* ASCENSION */
+//
+// !!!!!COMMENTS OUTDATED!!!!!
+//
 // IAPG - improved ascension points gain
 // EIAPG = max{1, PL/(15+10*IAPG)} : repetitive
 // points = (log(log(HL)) * (PL-10) * EIAPG / 100)^1.8 * 100
@@ -254,9 +269,15 @@ function getLayerLevel(layer) {
 	return Decimal.layeradd(new Decimal(layer).sqr().mul(1/98).plus(new Decimal(layer).mul(11/50)).plus(11/4) ,2);
 }
 
-function getCurrentALPoints(PL, level, pcl) {
+function getAL1Points(PL, level, pcl) {
 	var scarcity = $('#scarcity').val();
-	var ascPoints = level.log10().log10().pow(Decimal.pow(1.01, scarcity)).mul(PL.minus(10).mul(getIAPG(PL))).div(100).pow(1.8).times(100).floor();
+	var ipl = $('#alipl').val();
+	var PLgain = PL;
+	if (ipl > 0) {
+		PLgain = PLgain.pow(Decimal.pow(1.09, ipl));
+	}
+	PLgain = PLgain.minus(10);
+	var ascPoints = level.log10().log10().pow(Decimal.pow(1.01, scarcity)).mul(PLgain.mul(getIAPG(PL))).div(100).pow(1.8).times(100).floor();
 	if (ascPoints.cmp(100) > 0){
 		ascPoints = ascPoints.dividedBy(100).times(pcl.plus(1).pow(0.2)).pow(0.85).times(100).floor();
 		if (ascPoints.cmp(10000) > 0)
@@ -293,6 +314,8 @@ function ascensionInverseApprox(AL, target, accumulated) {
 }
 
 function getALPointsFromCurrent(AL, points, accumulated) {
+	var DR1 = 0.25;
+	var DR2 = 0.5;
 	var ascLayer = new Decimal(AL-1);
 	var ascPoints = points.div(new Decimal(ascLayer).sqr());
 	if (ascPoints.cmp(100) > 0){
@@ -302,7 +325,7 @@ function getALPointsFromCurrent(AL, points, accumulated) {
 			if (accumulated.eq(0))
 				ascPoints = ascPoints.minus(accumulated).sqrt();
 			else 
-				ascPoints = ascPoints.div(accumulated).pow(0.25).mul(accumulated).plus(ascPoints.minus(accumulated).sqrt());
+				ascPoints = accumulated.times(ascPoints.dividedBy(accumulated).pow(0.25)).plus(ascPoints.minus(accumulated).plus(new Decimal(4).dividedBy(9)).sqrt().minus(new Decimal(2).dividedBy(3)));
 			ascPoints = ascPoints.times(100).floor();
 		}
 	}
@@ -370,7 +393,7 @@ function estimateAscPoints(targetLayer, targetPoints) {
 			while (ascPoints.lt(ascPointsTarget)) {
 				layer = layer.plus(1);
 				var level = getLayerLevel(layer.plus(1));
-				ascPoints = getCurrentALPoints(layer, level, ALCurrentPoints);
+				ascPoints = getAL1Points(layer, level, ALCurrentPoints);
 			}
 			
 			var ascLayerLevel = getAPLevel(ascPointsTarget, layer, ALCurrentPoints);
@@ -403,7 +426,7 @@ function estimateAscPoints(targetLayer, targetPoints) {
 			while (ALTPoints.lt(ALTPointsTarget)) {
 				layer = layer.plus(1);
 				var level = getLayerLevel(layer.plus(1));
-				var CurrentALPointsTmp = getCurrentALPoints(layer, level, ALCurrentPoints);
+				var CurrentALPointsTmp = getAL1Points(layer, level, ALCurrentPoints);
 				var ALTPointsTmp = getALPointsFromCurrent(targetLayer, CurrentALPointsTmp.plus(ALCurrentPoints), ALTargetPoints);
 				
 				if (CurrentALPointsTmp.gt(CurrentALPoints)) {

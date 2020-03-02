@@ -98,7 +98,7 @@
 								<strong>-</strong>
 							</button>
 						</span>
-						<input id="rppr" type="text" style="text-align: center" class="form-control input-digits" value="1" onChange="checkValue('rppr');">
+						<input id="rppr" type="text" style="text-align: center" class="form-control input-digits" value="1" onChange="checkValue('rppr');" disabled="true">
 						<span class="input-group-btn">
 							<button class="btn btn-group btn-inline" type="button" onclick="upgInc(event, 'rppr');" tabIndex="-1">
 								<strong>+</strong>
@@ -114,9 +114,25 @@
 								<strong>-</strong>
 							</button>
 						</span>
-						<input id="rpdr" type="text" style="text-align: center" class="form-control input-digits" value="1" onChange="checkValue('rpdr');">
+						<input id="rpdr" type="text" style="text-align: center" class="form-control input-digits" value="0" onChange="checkValue('rpdr');" disabled="true">
 						<span class="input-group-btn">
 							<button class="btn btn-group btn-inline" type="button" onclick="upgInc(event, 'rpdr');" tabIndex="-1">
+								<strong>+</strong>
+							</button>
+						</span>
+					</div>
+				</form>
+				<form class="form-inline">
+					<div class="panel-body input-group">
+						<label id ="pliplLabel" for="plipl" class="input-group-addon input-group-label">Improved prestive layers</label>
+						<span class="input-group-btn">
+							<button class="btn btn-group btn-inline" style="border-radius:0" type="button" onclick="upgDec(event, 'plipl');" tabIndex="-1">
+								<strong>-</strong>
+							</button>
+						</span>
+						<input id="plipl" type="text" style="text-align: center" class="form-control input-digits" value="0" onChange="checkValue('plipl');" disabled="true">
+						<span class="input-group-btn">
+							<button class="btn btn-group btn-inline" type="button" onclick="upgInc(event, 'plipl');" tabIndex="-1">
 								<strong>+</strong>
 							</button>
 						</span>
@@ -294,6 +310,22 @@
 							<input id="scarcity" type="text" style="text-align: center" class="form-control input-digits" value="0" onChange="checkValue('scarcity');" disabled="true">
 							<span class="input-group-btn">
 								<button class="btn btn-group btn-inline" type="button" onclick="upgInc(event, 'scarcity');" tabIndex="-1">
+									<strong>+</strong>
+								</button>
+							</span>
+						</div>
+					</form>
+					<form class="form-inline">
+						<div class="panel-body input-group">
+							<label id ="aliplLabel" for="alipl" class="input-group-addon input-group-label">Improved prestige layers</label>
+							<span class="input-group-btn">
+								<button class="btn btn-group btn-inline" style="border-radius:0" type="button" onclick="upgDec(event, 'alipl');" tabIndex="-1">
+									<strong>-</strong>
+								</button>
+							</span>
+							<input id="alipl" type="text" style="text-align: center" class="form-control input-digits" value="0" onChange="checkValue('alipl');" disabled="true">
+							<span class="input-group-btn">
+								<button class="btn btn-group btn-inline" type="button" onclick="upgInc(event, 'alipl');" tabIndex="-1">
 									<strong>+</strong>
 								</button>
 							</span>
