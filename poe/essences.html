@@ -1,0 +1,73 @@
+<html>
+	<head>
+		<style type="text/css">
+			body {
+				/*background: url(./PoECheatSheetEssences_template.png) no-repeat center center fixed;*/
+				background-color: #0C1218;
+				display:grid;
+				place-content:center;
+			}
+			.container {
+				width: 686px;
+				height: 1048px;
+				background: url(./PoECheatSheetEssences_template.png) no-repeat;
+				display: grid;
+				column-gap: 50px;
+				row-gap: 13.8px;
+				grid-auto-rows: min-content;
+				grid-template-columns: 505px 50px;
+				grid-template-rows: min-content;
+				padding-top: 180px;
+				padding-left: 60px;
+				//padding-bottom: 180px;
+			}
+			span {
+				color: red;
+				font-weight: bold;
+				font-size: 32px;
+				margin: 0;
+			}
+		</style>
+		<script>
+			var essenceData;
+			window.onload = () => {
+				fetch('https://poe.ninja/api/data/itemoverview?league=Sentinel&type=Essence')
+					.then(response => response.json())
+					.then(data => essenceData = data);
+				//parseData(essenceData);
+			}
+
+			function parseData(data) {
+				let list = data.lines.filter(a => a.startsWith("Deafening"));
+			}
+		</script>
+	</head>
+	<body>
+	<div class="container">
+		<span>7</span>
+		<span>6</span>
+		<span>6</span>
+		<span>6</span>
+		<span>6</span>
+		<span>6</span>
+		<span>6</span>
+		<span>6</span>
+		<span>6</span>
+		<span>6</span>
+		<span>6</span>
+		<span>6</span>
+		<span>6</span>
+		<span>6</span>
+		<span>6</span>
+		<span>6</span>
+		<span>6</span>
+		<span>6</span>
+		<span>6</span>
+		<span>6</span>
+		<span>6</span>
+		<span>6</span>
+		<span>6</span>
+		<span>6</span>
+	</div>
+	</body>
+</html>
